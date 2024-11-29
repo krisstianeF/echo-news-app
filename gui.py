@@ -1,0 +1,706 @@
+from PyQt5 import QtCore, QtGui, QtWidgets
+import datetime
+from cards import ArticlesWidget, subArticlesWidget
+import sqlite3
+import sys
+from PyQt5.QtWidgets import *
+import sqlite3
+
+
+def font(family, size):
+    font = QtGui.QFont()
+    font.setFamily(family)
+    font.setPointSize(size)
+    return font
+
+class Ui_MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.resize(1400, 900)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        self.setMinimumSize(QtCore.QSize(1400, 640))
+        self.setFont(font("Muller Light", 12))
+        self.setStyleSheet("background-color: rgb(249, 252, 255);")
+        self.setWindowTitle("echo")
+        self.centralwidget = QtWidgets.QWidget()
+        self.setCentralWidget(self.centralwidget)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.centralwidget.setLayout(self.horizontalLayout)
+
+
+        '''______________________main menu_________________________'''
+
+        self.menuFrame = QtWidgets.QFrame(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.menuFrame.sizePolicy().hasHeightForWidth())
+        self.menuFrame.setSizePolicy(sizePolicy)
+        self.menuFrame.setMinimumSize(QtCore.QSize(255, 0))
+        self.menuFrame.setBaseSize(QtCore.QSize(228, 0))
+        self.menuFrame.setStyleSheet("background-color: rgb(255, 255, 255);")
+        self.menuFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.menuFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.menuLayout = QtWidgets.QVBoxLayout(self.menuFrame)
+        self.menuLayout.setContentsMargins(32, -1, 16, -1)
+
+        self.main_btn_style = '''QPushButton{
+                            color: rgb(255, 255, 255);
+                            background-color: rgb(44, 136, 240);
+                            border-radius: 28px;   
+                            border: 0px solid #094065;
+                            }
+                            QPushButton:hover {
+                            background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                                                                  stop: 0 #FF56D0, stop: 0.5 #9327FF, stop: 1 #2C88F0);
+                            }'''
+
+        self.mainButton = QtWidgets.QPushButton("echo")
+        self.mainButton.setMinimumSize(QtCore.QSize(164, 56))
+        self.mainButton.setFont(font("Cruinn", 14))
+        self.mainButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.mainButton.setStyleSheet(self.main_btn_style)
+
+        self.menuLayout.addWidget(self.mainButton)
+
+        self.entranceButton = QtWidgets.QPushButton(self.menuFrame)
+        self.entranceButton.setMinimumSize(QtCore.QSize(164, 56))
+        self.entranceButton.setFont(font("Muller Light", 12))
+        self.entranceButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.entranceButton.setStyleSheet("QPushButton{\n"
+"    color: rgb(0, 0, 0);\n"
+"    background-color: rgb(229, 241, 255);\n"
+"    border-radius: 28px;                     /* <----  40px  */ \n"
+"    border: 0px solid #094065;\n"
+"}\n"
+"QPushButton::hover{\n"
+"    background-color: #C7E0FD;}")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("gui\\icons/profile.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.entranceButton.setIcon(icon)
+        self.entranceButton.setIconSize(QtCore.QSize(28, 28))
+        self.entranceButton.setText("Вход")
+        self.menuLayout.addWidget(self.entranceButton)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.menuLayout.addItem(spacerItem)
+
+        hot_icon = QtGui.QIcon()
+        hot_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/hot.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.hotButton = self.create_category_btn(1, hot_icon)
+        self.menuLayout.addWidget(self.hotButton)
+
+        recent_icon = QtGui.QIcon()
+        recent_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/recent.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.recentButton = self.create_category_btn(2, recent_icon)
+        self.menuLayout.addWidget(self.recentButton)
+
+        spacerItem1 = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.menuLayout.addItem(spacerItem1)
+
+        self.categoryGroup = QtWidgets.QGroupBox(self.menuFrame)
+        self.categoryGroup.setFont(font("Muller Light", 10))
+        self.categoryGroup.setStyleSheet('''QGroupBox{ color: #9AC6F9; border: 0px solid;}''')
+        self.categoryLayout = QtWidgets.QVBoxLayout(self.categoryGroup)
+        self.categoryLayout.setContentsMargins(8, 8, 8, 8)
+        self.categoryLayout.setSpacing(4)
+        self.categoryGroup.setTitle("Разделы")
+
+        politic_icon = QtGui.QIcon()
+        politic_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/earth.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.politicButton = self.create_category_btn(3, politic_icon)
+        self.categoryLayout.addWidget(self.politicButton)
+
+        economy_icon = QtGui.QIcon()
+        economy_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/coin.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.economyButton = self.create_category_btn(4, economy_icon)
+        self.categoryLayout.addWidget(self.economyButton)
+
+        culture_icon = QtGui.QIcon()
+        culture_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/masks.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.cultureButton = self.create_category_btn(5, culture_icon)
+        self.categoryLayout.addWidget(self.cultureButton)
+
+        sport_icon = QtGui.QIcon()
+        sport_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/cup.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.sportButton = self.create_category_btn(6, sport_icon)
+        self.categoryLayout.addWidget(self.sportButton)
+
+        science_icon = QtGui.QIcon()
+        science_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/science.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.scienceButton = self.create_category_btn(7, science_icon)
+        self.categoryLayout.addWidget(self.scienceButton)
+
+        health_icon = QtGui.QIcon()
+        health_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/health.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.healthButton = self.create_category_btn(8, health_icon)
+        self.categoryLayout.addWidget(self.healthButton)
+
+        games_icon = QtGui.QIcon()
+        games_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/gamepad.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.gamesButton = self.create_category_btn(9, games_icon)
+        self.categoryLayout.addWidget(self.gamesButton)
+
+        self.menuLayout.addWidget(self.categoryGroup)
+
+        spacerItem4 = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.menuLayout.addItem(spacerItem4)
+
+        self.publishGroup = QtWidgets.QGroupBox(self.menuFrame)
+        self.publishGroup.setFont(font("Muller Light", 10))
+        self.publishGroup.setStyleSheet('''QGroupBox{ color: #9AC6F9; border: 0px solid;}''')
+        self.publishGroup.setTitle("Издательства")
+
+        self.publishLayout = QtWidgets.QVBoxLayout(self.publishGroup)
+        self.publishLayout.setContentsMargins(8, 8, 8, 8)
+        self.publishLayout.setSpacing(4)
+
+        riaIcon = QtGui.QIcon()
+        riaIcon.addPixmap(QtGui.QPixmap("gui\\icons/publish/ria.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.riaButton = self.create_publish_btn(1, riaIcon)
+        self.publishLayout.addWidget(self.riaButton)
+
+        aifIcon = QtGui.QIcon()
+        aifIcon.addPixmap(QtGui.QPixmap("gui\\icons/publish/aif.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.aifButton = self.create_publish_btn(2, aifIcon)
+        self.publishLayout.addWidget(self.aifButton)
+
+        tassIcon = QtGui.QIcon()
+        tassIcon.addPixmap(QtGui.QPixmap("gui\\icons/publish/tass.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.tassButton = self.create_publish_btn(3, tassIcon)
+        self.publishLayout.addWidget(self.tassButton)
+
+        self.menuLayout.addWidget(self.publishGroup)
+
+        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.menuLayout.addItem(spacerItem2)
+
+
+        self.horizontalLayout.addWidget(self.menuFrame)
+        self.mainFrame = QtWidgets.QFrame(self.centralwidget)
+        self.mainFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.mainFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.mainLayout = QtWidgets.QVBoxLayout(self.mainFrame)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setSpacing(0)
+
+
+        '''______________________top_menu_________________________'''
+
+        self.topMenuFrame = QtWidgets.QFrame(self.mainFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.topMenuFrame.sizePolicy().hasHeightForWidth())
+        self.topMenuFrame.setSizePolicy(sizePolicy)
+        self.topMenuFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.topMenuFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.topMenuLayout = QtWidgets.QHBoxLayout(self.topMenuFrame)
+        self.topMenuLayout.setContentsMargins(64, 32, 64, 16)
+
+
+        self.serchFrame = QtWidgets.QFrame(self.topMenuFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.serchFrame.sizePolicy().hasHeightForWidth())
+
+        self.serchFrame.setSizePolicy(sizePolicy)
+        self.serchFrame.setStyleSheet("background-color: rgb(255, 255, 255); border: 1px solid #C7E0FD; border-radius: 20px;")
+        self.serchFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.serchFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.searchLayout = QtWidgets.QHBoxLayout(self.serchFrame)
+        self.searchLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.search_icon = QtWidgets.QPushButton(self.serchFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.search_icon.sizePolicy().hasHeightForWidth())
+        self.search_icon.setSizePolicy(sizePolicy)
+        self.search_icon.setMinimumSize(QtCore.QSize(40, 40))
+        self.search_icon.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.search_icon.setStyleSheet("border: 0px solid;")
+        self.search_icon.setText("")
+        searchIcon = QtGui.QIcon()
+        searchIcon.addPixmap(QtGui.QPixmap("gui\\icons/Search.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.search_icon.setIcon(searchIcon)
+        self.search_icon.setIconSize(QtCore.QSize(32, 32))
+        self.searchLayout.addWidget(self.search_icon)
+
+        self.lineEdit = QtWidgets.QLineEdit(self.serchFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
+        self.lineEdit.setSizePolicy(sizePolicy)
+        self.lineEdit.setFont(font("Muller Light", 10))
+        self.lineEdit.setStyleSheet("border: 0px solid;")
+        self.searchLayout.addWidget(self.lineEdit)
+
+        self.topMenuLayout.addWidget(self.serchFrame)
+
+        self.find_btn = QtWidgets.QPushButton(self.topMenuFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.find_btn.sizePolicy().hasHeightForWidth())
+        self.find_btn.setSizePolicy(sizePolicy)
+        self.find_btn.setMinimumSize(QtCore.QSize(120, 40))
+        self.find_btn.setFont(font("Muller Light", 10))
+        self.find_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.find_btn.setStyleSheet("color: rgb(255, 255, 255); background-color: rgb(44, 136, 240); border-radius: 20px; border: 0px solid #094065;")
+        self.topMenuLayout.addWidget(self.find_btn)
+
+        self.find_btn.setText("Найти")
+
+        self.comboBoxFrame = QtWidgets.QFrame(self.topMenuFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBoxFrame.sizePolicy().hasHeightForWidth())
+        self.comboBoxFrame.setSizePolicy(sizePolicy)
+        self.comboBoxFrame.setMinimumSize(QtCore.QSize(116, 40))
+        self.comboBoxFrame.setStyleSheet("background-color: rgb(229, 241, 255); border-radius: 20px;")
+        self.comboBoxFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.comboBoxFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.comboBoxLayout = QtWidgets.QHBoxLayout(self.comboBoxFrame)
+        self.comboBoxLayout.setContentsMargins(16, 6, 16, 6)
+
+        self.comboBox = QtWidgets.QComboBox(self.comboBoxFrame)
+        self.comboBox.setMinimumSize(QtCore.QSize(116, 20))
+        self.comboBox.setFont(font("Muller Light", 10))
+        self.comboBox.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.comboBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.comboBox.setAutoFillBackground(False)
+        self.comboBox.setStyleSheet("QComboBox {\n"
+"    background-color: #E5F1FF; /* Цвет фона */\n"
+"    color: #000000;          /* Цвет текста */\n"
+"    border: 0px solid #E5F1FF; /* Рамка */\n"
+"    border-radius: 20px;       /* Скругленные углы */\n"
+"    padding: 5px;            /* Отступы */\n"
+"}\n"
+"\n"
+"QComboBox QAbstractItemView {\n"
+"    border: 1px solid #C7E0FD;\n"
+"    border-radius: 10px; /* Скругление выпадающего списка */\n"
+"    selection-background-color: #C7E0FD; /* Цвет выделения */\n"
+"    selection-color: black; /* Цвет текста выделенного элемента */\n"
+"    padding: 5px;            /* Отступы */\n"
+"    spacing: 5px;\n"
+"    outline: none;\n"
+"}\n"
+"\n"
+"QComboBox::drop-down {\n"
+"    subcontrol-origin: padding;\n"
+"    subcontrol-position: top right;\n"
+"    width: 20px;\n"
+"    border-left: 0px solid #cccccc; /* Граница выпадающего списка */\n"
+"}\n"
+"\n"
+"QComboBox::down-arrow {\n"
+"    image: url(gui/icons/arrow down.png); /* Замените на свой путь к картинке */\n"
+"}")
+        self.comboBox.setInsertPolicy(QtWidgets.QComboBox.InsertAtCurrent)
+        self.comboBox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContentsOnFirstShow)
+        self.comboBox.setIconSize(QtCore.QSize(40, 40))
+        self.comboBox.setDuplicatesEnabled(False)
+        self.comboBox.setFrame(True)
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBoxLayout.addWidget(self.comboBox)
+        self.topMenuLayout.addWidget(self.comboBoxFrame)
+        self.mainLayout.addWidget(self.topMenuFrame)
+
+        self.comboBox.setCurrentText("За день")
+        self.comboBox.setItemText(0, "За день")
+        self.comboBox.setItemText(1, "За неделю")
+        self.comboBox.setItemText(2, "За месяц")
+        self.comboBox.setItemText(3, "За год")
+
+
+        self.articleFrame = QtWidgets.QFrame(self.mainFrame)
+        self.articleFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.articleFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.articleFrame.setObjectName("articleFrame")
+        self.articleLayout = QtWidgets.QVBoxLayout(self.articleFrame)
+        self.articleLayout.setObjectName("articleLayout")
+        self.mainLayout.addWidget(self.articleFrame)
+        self.horizontalLayout.addWidget(self.mainFrame)
+
+        self.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar()
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1400, 26))
+        self.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar()
+        self.setStatusBar(self.statusbar)
+
+        #self.retranslateUi()
+        #QtCore.QMetaObject.connectSlotsByName()
+
+        self.set_all_cards()
+        self.mainButton.clicked.connect(self.set_all_cards)
+
+        self.hotButton.clicked.connect(self.set_hot_cards)
+        self.recentButton.clicked.connect(self.set_recent_cards)
+        self.politicButton.clicked.connect(self.set_politic_cards)
+        self.economyButton.clicked.connect(self.set_economy_cards)
+        self.cultureButton.clicked.connect(self.set_culture_cards)
+        self.sportButton.clicked.connect(self.set_sport_cards)
+        self.scienceButton.clicked.connect(self.set_science_cards)
+        self.healthButton.clicked.connect(self.set_health_cards)
+        self.gamesButton.clicked.connect(self.set_games_cards)
+
+        self.riaButton.clicked.connect(self.set_ria_cards)
+        self.aifButton.clicked.connect(self.set_aif_cards)
+        self.tassButton.clicked.connect(self.set_tass_cards)
+
+        self.entranceButton.clicked.connect(self.open_login_window)
+
+    def create_category_btn(self, id, icon):
+        sqlite_connection = sqlite3.connect('echo_database.db')
+        cursor = sqlite_connection.cursor()
+        request = f"""SELECT category_name FROM category WHERE categoryID = {id}"""
+        cursor.execute(request)
+        category_name = cursor.fetchone()[0]
+        cursor.connection.close()
+
+        self.Button = QtWidgets.QPushButton(category_name)
+        self.Button.setMinimumSize(QtCore.QSize(0, 40))
+        self.Button.setFont(font("Muller Light", 10))
+        self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.Button.setStyleSheet("QPushButton {\n"
+                                      "    background-color: white; /* Белый фон */\n"
+                                      "    border-radius: 24px; /* Скругление углов */\n"
+                                      "    padding: 8px; /* Внутренние отступы */\n"
+                                      "    text-align: left; /* Выравнивание текста слева */\n"
+                                      "}\n"
+                                      "QPushButton::icon {\n"
+                                      "    padding-right: 8px; /* Отступ между иконкой и текстом */\n"
+                                      "}\n"
+                                      "\n"
+                                      "QPushButton::hover {\n"
+                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */\n"
+                                      "}\n"
+                                      "QPushButton::pressed {\n"
+                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */}\n")
+        self.Button.setIcon(icon)
+        self.Button.setIconSize(QtCore.QSize(32, 32))
+        return self.Button
+    def create_publish_btn(self, id, icon):
+        sqlite_connection = sqlite3.connect('echo_database.db')
+        cursor = sqlite_connection.cursor()
+        request = f"""SELECT publish_name FROM publish WHERE publishID = {id}"""
+        cursor.execute(request)
+        publish_name = cursor.fetchone()[0]
+        cursor.connection.close()
+
+        self.Button = QtWidgets.QPushButton(publish_name)
+        self.Button.setMinimumSize(QtCore.QSize(0, 40))
+        self.Button.setFont(font("Muller Light", 10))
+        self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.Button.setStyleSheet("QPushButton {\n"
+                                      "    background-color: white; /* Белый фон */\n"
+                                      "    border-radius: 24px; /* Скругление углов */\n"
+                                      "    padding: 8px; /* Внутренние отступы */\n"
+                                      "    text-align: left; /* Выравнивание текста слева */\n"
+                                      "}\n"
+                                      "QPushButton::icon {\n"
+                                      "    padding-right: 8px; /* Отступ между иконкой и текстом */\n"
+                                      "}\n"
+                                      "\n"
+                                      "QPushButton::hover {\n"
+                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */\n"
+                                      "}\n"
+                                      "QPushButton::pressed {\n"
+                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */}\n")
+        self.Button.setIcon(icon)
+        self.Button.setIconSize(QtCore.QSize(32, 32))
+        return self.Button
+
+    '''Загрузка всех карточек'''
+    def set_all_cards(self):
+        self.clear_layout(self.articleLayout)
+
+        id_request = """SELECT articleID FROM article ORDER BY article_date DESC;"""
+        # Создание и добавление виджета с карточками
+        articles_widget = ArticlesWidget(id_request)
+        self.articleLayout.addWidget(articles_widget)
+
+    '''Функции для кнопок разделов'''
+    def set_hot_cards(self):
+        today = datetime.date.today()
+        two_day_ago = today - datetime.timedelta(days=2)
+        self.clear_layout(self.articleLayout)
+        id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {two_day_ago} ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 1;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_recent_cards(self):
+        today = datetime.date.today()
+        two_day_ago = today - datetime.timedelta(days = 2)
+        self.clear_layout(self.articleLayout)
+        id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {two_day_ago} ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 2;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_politic_cards(self):
+        self.clear_layout(self.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = 3 ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 3;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_economy_cards(self):
+        self.clear_layout(self.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = 4 ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 4;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_culture_cards(self):
+        self.clear_layout(self.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = 5 ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 5;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_sport_cards(self):
+        self.clear_layout(self.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = 6 ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 6;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_science_cards(self):
+        self.clear_layout(self.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = 7 ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 7;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_health_cards(self):
+        self.clear_layout(self.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = 8 ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = 8;"""
+        articles_widget = subArticlesWidget(id_request, title_request)
+        self.articleLayout.addWidget(articles_widget)
+    def set_games_cards(self):
+            self.clear_layout(self.articleLayout)
+            id_request = """SELECT articleID FROM article WHERE categoryID = 9 ORDER BY article_date DESC;"""
+            title_request = """SELECT category_name FROM category WHERE categoryID = 9;"""
+            articles_widget = subArticlesWidget(id_request, title_request)
+            self.articleLayout.addWidget(articles_widget)
+
+    '''Функции для кнопок издательств'''
+    def set_ria_cards(self):
+            self.clear_layout(self.articleLayout)
+            id_request = """SELECT articleID FROM article WHERE publishID = 1 ORDER BY article_date DESC;"""
+            title_request = """SELECT publish_name FROM publish WHERE publishID = 1;"""
+            articles_widget = subArticlesWidget(id_request, title_request)
+            self.articleLayout.addWidget(articles_widget)
+    def set_aif_cards(self):
+            self.clear_layout(self.articleLayout)
+            id_request = """SELECT articleID FROM article WHERE publishID = 2 ORDER BY article_date DESC;"""
+            title_request = """SELECT publish_name FROM publish WHERE publishID = 2;"""
+            articles_widget = subArticlesWidget(id_request, title_request)
+            self.articleLayout.addWidget(articles_widget)
+    def set_tass_cards(self):
+            self.clear_layout(self.articleLayout)
+            id_request = """SELECT articleID FROM article WHERE publishID = 3 ORDER BY article_date DESC;"""
+            title_request = """SELECT publish_name FROM publish WHERE publishID = 3;"""
+            articles_widget = subArticlesWidget(id_request, title_request)
+            self.articleLayout.addWidget(articles_widget)
+
+    def clear_layout(self, layout):
+        if layout is not None:
+                for i in reversed(range(layout.count())):
+                        widget = layout.itemAt(i).widget()
+                        if widget:
+                                widget.setParent(None)
+
+    def open_login_window(self):
+        self.login_window = LoginWindow()
+        self.login_window.show()
+        self.hide()
+
+class LoginWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Вход")
+        self.resize(1400, 900)
+        self.setStyleSheet("background-color: rgb(249, 252, 255);")
+
+        self.centralwidget = QtWidgets.QWidget()
+        self.setCentralWidget(self.centralwidget)
+
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setContentsMargins(350, 150, 350, 150)
+        self.centralwidget.setLayout(self.horizontalLayout)
+
+        self.frame = QtWidgets.QFrame(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
+        self.frame.setSizePolicy(sizePolicy)
+        self.frame.setMaximumSize(QtCore.QSize(650, 650))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(20)
+        self.frame.setFont(font)
+        self.frame.setStyleSheet("QFrame{ color: #2C88F0; background-color: #ffffff; border-radius: 64px;}")
+        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame.setObjectName("frame")
+
+        self.entranceLayout = QtWidgets.QVBoxLayout(self.frame)
+        self.entranceLayout.setContentsMargins(64, 64, 64, 64)
+        self.entranceLayout.setSpacing(32)
+        self.entranceLayout.setObjectName("entranceLayout")
+
+        self.echoFLayout = QtWidgets.QHBoxLayout()
+        self.echo = QtWidgets.QPushButton(self.frame)
+        self.echo.setText("echo")
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.echo.sizePolicy().hasHeightForWidth())
+        self.echo.setSizePolicy(sizePolicy)
+        self.echo.setMinimumSize(QtCore.QSize(164, 56))
+        font = QtGui.QFont()
+        font.setFamily("Cruinn")
+        font.setPointSize(14)
+        self.echo.setFont(font)
+        self.echo.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.echo.setStyleSheet("color: rgb(255, 255, 255);\n"
+                                "background-color: rgb(44, 136, 240);\n"
+                                "border-radius: 28px;                     /* <----  40px  */ \n"
+                                "border: 0px solid #094065;")
+        self.echo.setObjectName("echo")
+        self.echoFLayout.addWidget(self.echo)
+        self.entranceLayout.addLayout(self.echoFLayout)
+
+        self.usernameLayout = QtWidgets.QVBoxLayout()
+        self.usernameLayout.setSpacing(0)
+        self.usernameLayout.setObjectName("usernameLayout")
+        self.usernameLabel = QtWidgets.QLabel(self.frame)
+        self.usernameLabel.setText('Имя пользователя')
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(14)
+        self.usernameLabel.setFont(font)
+        self.usernameLabel.setObjectName("usernameLabel")
+        self.usernameLayout.addWidget(self.usernameLabel)
+        self.usernameLineEdit = QtWidgets.QLineEdit(self.frame)
+        self.usernameLineEdit.setMinimumSize(QtCore.QSize(0, 50))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(10)
+        self.usernameLineEdit.setFont(font)
+        self.usernameLineEdit.setStyleSheet('''QLineEdit{ 
+        color: #000000; 
+        background-color: #ffffff; 
+        border: 1px solid #B1D5FF; 
+        border-radius: 25px;
+        padding-left: 10px;
+        padding-right: 10px;}''')
+        self.usernameLineEdit.setObjectName("usernameLineEdit")
+        self.usernameLayout.addWidget(self.usernameLineEdit)
+        self.entranceLayout.addLayout(self.usernameLayout)
+        self.passwordLayout = QtWidgets.QVBoxLayout()
+        self.passwordLayout.setSpacing(0)
+        self.passwordLayout.setObjectName("passwordLayout")
+
+        self.passwordLabel = QtWidgets.QLabel(self.frame)
+        self.passwordLabel.setText('Пароль')
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(14)
+        self.passwordLabel.setFont(font)
+        self.passwordLabel.setObjectName("passwordLabel")
+        self.passwordLayout.addWidget(self.passwordLabel)
+        self.passwordLineEdit = QtWidgets.QLineEdit(self.frame)
+        self.passwordLineEdit.setMinimumSize(QtCore.QSize(0, 50))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(10)
+        self.passwordLineEdit.setFont(font)
+        self.passwordLineEdit.setStyleSheet(
+            '''QLineEdit{ color: #000000; background-color: #ffffff; border: 1px solid #B1D5FF; border-radius: 25px;
+            padding-left: 10px;
+            padding-right: 10px;}''')
+        self.passwordLineEdit.setObjectName("passwordLineEdit")
+        self.passwordLayout.addWidget(self.passwordLineEdit)
+        self.entranceLayout.addLayout(self.passwordLayout)
+
+        self.enterButton = QtWidgets.QPushButton(self.frame)
+        self.enterButton.setText('Войти')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.enterButton.sizePolicy().hasHeightForWidth())
+        self.enterButton.setSizePolicy(sizePolicy)
+        self.enterButton.setMinimumSize(QtCore.QSize(164, 56))
+        font = QtGui.QFont()
+        font.setFamily("Cruinn")
+        font.setPointSize(12)
+        self.enterButton.setFont(font)
+        self.enterButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.enterButton.setStyleSheet("color: rgb(255, 255, 255);\n"
+                                       "background-color: rgb(44, 136, 240);\n"
+                                       "border-radius: 28px;                     /* <----  40px  */ \n"
+                                       "border: 0px solid #094065;")
+        self.enterButton.setObjectName("enterButton")
+        self.entranceLayout.addWidget(self.enterButton)
+        self.textUnderLayout = QtWidgets.QVBoxLayout()
+        self.textUnderLayout.setContentsMargins(0, 40, 0, 40)
+        self.textUnderLayout.setSpacing(8)
+
+        self.label_under_form = QtWidgets.QLabel('Если еще нет аккаунта, ты можешь')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.label_under_form.sizePolicy().hasHeightForWidth())
+        self.label_under_form.setSizePolicy(sizePolicy)
+        self.label_under_form.setMaximumSize(QtCore.QSize(16777215, 20))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(14)
+        self.label_under_form.setFont(font)
+        self.label_under_form.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
+        self.label_under_form.setWordWrap(True)
+        self.textUnderLayout.addWidget(self.label_under_form)
+
+        self.registrationBtn = QtWidgets.QPushButton(self.frame)
+        self.registrationBtn.setText("зарегистрироваться!")
+        #font.setUnderline(True)
+        self.registrationBtn.setFont(font)
+        self.registrationBtn.setStyleSheet('''color: #2C88F0;
+                                           background-color: #ffffff;
+                                           border: 0px solid #094065;
+                                           text-decoration: underline;''')
+        self.registrationBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.textUnderLayout.addWidget(self.registrationBtn)
+        self.entranceLayout.addLayout(self.textUnderLayout)
+
+        self.horizontalLayout.addWidget(self.frame)
+
+        self.echo.clicked.connect(self.openMainWnd)
+
+    def openMainWnd(self):
+
+        MainWindow = Ui_MainWindow()
+        MainWindow.show()
+        self.hide()
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    MainWindow.show()
+    sys.exit(app.exec_())
