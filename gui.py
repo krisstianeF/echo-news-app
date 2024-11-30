@@ -7,35 +7,51 @@ import sys
 import sqlite3
 from cards import ArticlesWidget, subArticlesWidget
 
+#from userGui import UserMainWidget
+
 def font(family, size):
     font = QtGui.QFont()
     font.setFamily(family)
     font.setPointSize(size)
     return font
 
-class Ui_MainWindow(QMainWindow):
+class Window(QMainWindow):
+    horizontalLayout= None
     def __init__(self):
         super().__init__()
         self.resize(1400, 900)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-        self.setSizePolicy(sizePolicy)
         self.setMinimumSize(QtCore.QSize(1400, 640))
-        self.setFont(font("Muller Light", 12))
         self.setStyleSheet("background-color: rgb(249, 252, 255);")
         self.setWindowTitle("echo")
+
         self.centralwidget = QtWidgets.QWidget()
         self.setCentralWidget(self.centralwidget)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.centralwidget.setLayout(self.horizontalLayout)
+        Window.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        Window.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.centralwidget.setLayout(Window.horizontalLayout)
+
+
+        '''-----------------mainWnd------------------'''
+
+        '''self.login = LoginWidget()
+        self.horizontalLayout.addWidget(self.login)'''
+        self.main_widget = MainWidget()
+        Window.horizontalLayout.addWidget(self.main_widget)
+
+class MainWidget(QWidget):
+    profileButton = None
+    articleLayout = None
+    horizontalLayout = None
+    def __init__(self):
+        super().__init__()
+        MainWidget.horizontalLayout = QtWidgets.QHBoxLayout()
+        MainWidget.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(MainWidget.horizontalLayout)
 
 
         '''______________________main menu_________________________'''
 
-        self.menuFrame = QtWidgets.QFrame(self.centralwidget)
+        self.menuFrame = QtWidgets.QFrame(self)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -57,8 +73,7 @@ class Ui_MainWindow(QMainWindow):
                             border: 0px solid #094065;
                             }
                             QPushButton:hover {
-                            background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-                                                                  stop: 0 #FF56D0, stop: 0.5 #9327FF, stop: 1 #2C88F0);
+                            background-color: #237DE3;
                             }'''
 
         self.mainButton = QtWidgets.QPushButton("echo")
@@ -69,11 +84,11 @@ class Ui_MainWindow(QMainWindow):
 
         self.menuLayout.addWidget(self.mainButton)
 
-        self.entranceButton = QtWidgets.QPushButton(self.menuFrame)
-        self.entranceButton.setMinimumSize(QtCore.QSize(164, 56))
-        self.entranceButton.setFont(font("Muller Light", 12))
-        self.entranceButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.entranceButton.setStyleSheet("QPushButton{\n"
+        MainWidget.profileButton = QtWidgets.QPushButton(self.menuFrame)
+        MainWidget.profileButton.setMinimumSize(QtCore.QSize(164, 56))
+        MainWidget.profileButton.setFont(font("Muller Light", 12))
+        MainWidget.profileButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        MainWidget.profileButton.setStyleSheet("QPushButton{\n"
 "    color: rgb(0, 0, 0);\n"
 "    background-color: rgb(229, 241, 255);\n"
 "    border-radius: 28px;                     /* <----  40px  */ \n"
@@ -83,10 +98,10 @@ class Ui_MainWindow(QMainWindow):
 "    background-color: #C7E0FD;}")
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("gui\\icons/profile.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.entranceButton.setIcon(icon)
-        self.entranceButton.setIconSize(QtCore.QSize(28, 28))
-        self.entranceButton.setText("Вход")
-        self.menuLayout.addWidget(self.entranceButton)
+        MainWidget.profileButton.setIcon(icon)
+        MainWidget.profileButton.setIconSize(QtCore.QSize(28, 28))
+        MainWidget.profileButton.setText("Вход")
+        self.menuLayout.addWidget(MainWidget.profileButton)
 
         spacerItem = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.menuLayout.addItem(spacerItem)
@@ -108,8 +123,8 @@ class Ui_MainWindow(QMainWindow):
         self.categoryGroup.setFont(font("Muller Light", 10))
         self.categoryGroup.setStyleSheet('''QGroupBox{ color: #9AC6F9; border: 0px solid;}''')
         self.categoryLayout = QtWidgets.QVBoxLayout(self.categoryGroup)
-        self.categoryLayout.setContentsMargins(8, 8, 8, 8)
-        self.categoryLayout.setSpacing(4)
+        self.categoryLayout.setContentsMargins(0, 32, 0, 32)
+        self.categoryLayout.setSpacing(8)
         self.categoryGroup.setTitle("Разделы")
 
         politic_icon = QtGui.QIcon()
@@ -158,8 +173,8 @@ class Ui_MainWindow(QMainWindow):
         self.publishGroup.setTitle("Издательства")
 
         self.publishLayout = QtWidgets.QVBoxLayout(self.publishGroup)
-        self.publishLayout.setContentsMargins(8, 8, 8, 8)
-        self.publishLayout.setSpacing(4)
+        self.publishLayout.setContentsMargins(0, 32, 0, 32)
+        self.publishLayout.setSpacing(8)
 
         riaIcon = QtGui.QIcon()
         riaIcon.addPixmap(QtGui.QPixmap("gui\\icons/publish/ria.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -182,8 +197,8 @@ class Ui_MainWindow(QMainWindow):
         self.menuLayout.addItem(spacerItem2)
 
 
-        self.horizontalLayout.addWidget(self.menuFrame)
-        self.mainFrame = QtWidgets.QFrame(self.centralwidget)
+        MainWidget.horizontalLayout.addWidget(self.menuFrame)
+        self.mainFrame = QtWidgets.QFrame(self)
         self.mainFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.mainFrame.setFrameShadow(QtWidgets.QFrame.Raised)
 
@@ -250,8 +265,6 @@ class Ui_MainWindow(QMainWindow):
 
         self.find_btn = QtWidgets.QPushButton(self.topMenuFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.find_btn.sizePolicy().hasHeightForWidth())
         self.find_btn.setSizePolicy(sizePolicy)
         self.find_btn.setMinimumSize(QtCore.QSize(120, 40))
@@ -333,19 +346,11 @@ class Ui_MainWindow(QMainWindow):
         self.articleFrame = QtWidgets.QFrame(self.mainFrame)
         self.articleFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.articleFrame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.articleLayout = QtWidgets.QVBoxLayout(self.articleFrame)
+        MainWidget.articleLayout = QtWidgets.QVBoxLayout(self.articleFrame)
         self.mainLayout.addWidget(self.articleFrame)
-        self.horizontalLayout.addWidget(self.mainFrame)
+        MainWidget.horizontalLayout.addWidget(self.mainFrame)
 
-        self.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar()
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1400, 26))
-        self.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.statusbar)
-
-        #self.retranslateUi()
-        #QtCore.QMetaObject.connectSlotsByName()
+        self.setLayout(MainWidget.horizontalLayout)
 
         self.set_all_cards()
         self.mainButton.clicked.connect(self.set_all_cards)
@@ -364,8 +369,10 @@ class Ui_MainWindow(QMainWindow):
         self.aifButton.clicked.connect(self.set_aif_cards)
         self.tassButton.clicked.connect(self.set_tass_cards)
 
-        self.entranceButton.clicked.connect(self.set_login_layout)
+        MainWidget.profileButton.clicked.connect(self.set_login_layout)
 
+
+    '''Создание кнопок категорий'''
     def create_category_btn(self, id, icon):
         sqlite_connection = sqlite3.connect('echo_database.db')
         cursor = sqlite_connection.cursor()
@@ -376,6 +383,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.Button = QtWidgets.QPushButton(category_name)
         self.Button.setMinimumSize(QtCore.QSize(0, 40))
+        self.Button.setMaximumSize(QtCore.QSize(210, 40))
         self.Button.setFont(font("Muller Light", 10))
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button.setStyleSheet("QPushButton {\n"
@@ -406,6 +414,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.Button = QtWidgets.QPushButton(publish_name)
         self.Button.setMinimumSize(QtCore.QSize(0, 40))
+        self.Button.setMaximumSize(QtCore.QSize(210, 40))
         self.Button.setFont(font("Muller Light", 10))
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button.setStyleSheet("QPushButton {\n"
@@ -429,94 +438,95 @@ class Ui_MainWindow(QMainWindow):
 
     '''Загрузка всех карточек'''
     def set_all_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
 
         id_request = """SELECT articleID FROM article ORDER BY article_date DESC;"""
         # Создание и добавление виджета с карточками
         articles_widget = ArticlesWidget(id_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
 
     '''Функции для кнопок разделов'''
     def set_hot_cards(self):
         today = datetime.date.today()
         two_day_ago = today - datetime.timedelta(days=2)
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {two_day_ago} ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 1;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_recent_cards(self):
         today = datetime.date.today()
         two_day_ago = today - datetime.timedelta(days = 2)
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {two_day_ago} ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 2;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_politic_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = 3 ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 3;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_economy_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = 4 ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 4;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_culture_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = 5 ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 5;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_sport_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = 6 ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 6;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_science_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = 7 ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 7;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_health_cards(self):
-        self.clear_layout(self.articleLayout)
+        self.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = 8 ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = 8;"""
         articles_widget = subArticlesWidget(id_request, title_request)
-        self.articleLayout.addWidget(articles_widget)
+        MainWidget.articleLayout.addWidget(articles_widget)
     def set_games_cards(self):
-            self.clear_layout(self.articleLayout)
+            self.clear_layout(MainWidget.articleLayout)
             id_request = """SELECT articleID FROM article WHERE categoryID = 9 ORDER BY article_date DESC;"""
             title_request = """SELECT category_name FROM category WHERE categoryID = 9;"""
             articles_widget = subArticlesWidget(id_request, title_request)
-            self.articleLayout.addWidget(articles_widget)
+            MainWidget.articleLayout.addWidget(articles_widget)
 
     '''Функции для кнопок издательств'''
     def set_ria_cards(self):
-            self.clear_layout(self.articleLayout)
+            self.clear_layout(MainWidget.articleLayout)
             id_request = """SELECT articleID FROM article WHERE publishID = 1 ORDER BY article_date DESC;"""
             title_request = """SELECT publish_name FROM publish WHERE publishID = 1;"""
             articles_widget = subArticlesWidget(id_request, title_request)
-            self.articleLayout.addWidget(articles_widget)
+            MainWidget.articleLayout.addWidget(articles_widget)
     def set_aif_cards(self):
-            self.clear_layout(self.articleLayout)
+            self.clear_layout(MainWidget.articleLayout)
             id_request = """SELECT articleID FROM article WHERE publishID = 2 ORDER BY article_date DESC;"""
             title_request = """SELECT publish_name FROM publish WHERE publishID = 2;"""
             articles_widget = subArticlesWidget(id_request, title_request)
-            self.articleLayout.addWidget(articles_widget)
+            MainWidget.articleLayout.addWidget(articles_widget)
     def set_tass_cards(self):
-            self.clear_layout(self.articleLayout)
+            self.clear_layout(MainWidget.articleLayout)
             id_request = """SELECT articleID FROM article WHERE publishID = 3 ORDER BY article_date DESC;"""
             title_request = """SELECT publish_name FROM publish WHERE publishID = 3;"""
             articles_widget = subArticlesWidget(id_request, title_request)
-            self.articleLayout.addWidget(articles_widget)
+            MainWidget.articleLayout.addWidget(articles_widget)
 
-    def clear_layout(self, layout):
+    @classmethod
+    def clear_layout(cls, layout):
         if layout is not None:
                 for i in reversed(range(layout.count())):
                         widget = layout.itemAt(i).widget()
@@ -524,15 +534,29 @@ class Ui_MainWindow(QMainWindow):
                                 widget.setParent(None)
 
     def set_login_layout(self):
-        app = QtWidgets.QApplication(sys.argv)
-        self.clear_layout(self.horizontalLayout)
+        self.clear_layout(MainWidget.horizontalLayout)
         self.login = LoginWidget()
-        self.horizontalLayout.addWidget(self.login)
-        sys.exit(app.exec_())
+        MainWidget.horizontalLayout.addWidget(self.login)
+
+    '''Открытие профиля пользователя'''
+    @classmethod
+    def set_profile_widget(cls):
+        cls.clear_layout(MainWidget.articleLayout)
+        profile = ProfileWidget(1)
+        cls.articleLayout.addWidget(profile)
+
+    @classmethod
+    def createUserMainWidget(cls):
+        if cls.profileButton:
+            cls.profileButton.setText("Профиль")
+            cls.profileButton.clicked.disconnect()
+            cls.profileButton.clicked.connect(cls.set_profile_widget)
+
 
 class LoginWidget(QWidget):
     def __init__(self):
         super().__init__()
+
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.frame = QFrame(self)
@@ -566,7 +590,7 @@ class LoginWidget(QWidget):
         font.setFamily("Cruinn")
         font.setPointSize(14)
         self.echo.setFont(font)
-        self.echo.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.echo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.echo.setStyleSheet("color: rgb(255, 255, 255);\n"
                                 "background-color: rgb(44, 136, 240);\n"
                                 "border-radius: 28px;                     /* <----  40px  */ \n"
@@ -597,8 +621,8 @@ class LoginWidget(QWidget):
         background-color: #ffffff; 
         border: 1px solid #B1D5FF; 
         border-radius: 25px;
-        padding-left: 10px;
-        padding-right: 10px;}''')
+        padding-left: 20px;
+        padding-right: 20px;}''')
         self.usernameLayout.addWidget(self.usernameLineEdit)
         self.entranceLayout.addLayout(self.usernameLayout)
 
@@ -614,6 +638,8 @@ class LoginWidget(QWidget):
         self.passwordLayout.addWidget(self.passwordLabel)
 
         self.passwordFrame = QFrame(self.frame)
+        self.passwordFrame.setMaximumSize(1000, 50)
+        self.passwordFrame.setMinimumSize(0, 50)
         self.passwordFrame.setStyleSheet(
             '''QFrame{ color: #000000; background-color: #ffffff; border: 1px solid #B1D5FF; border-radius: 25px;
             padding-left: 10px;
@@ -622,16 +648,16 @@ class LoginWidget(QWidget):
         self.passwordFrame.setFrameShadow(QtWidgets.QFrame.Raised)
 
         self.passwordLayout2 = QHBoxLayout(self.frame)
-        self.passwordLayout2.setContentsMargins(0, 2, 2, 2)
+        self.passwordLayout2.setContentsMargins(0, 5, 5, 5)
 
         self.passwordLineEdit = QtWidgets.QLineEdit(self.passwordFrame)
-        self.passwordLineEdit.setMinimumSize(QtCore.QSize(0, 50))
+        self.passwordLineEdit.setMaximumSize(QtCore.QSize(1000, 46))
         font = QtGui.QFont()
         font.setFamily("Muller Light")
         font.setPointSize(10)
         self.passwordLineEdit.setFont(font)
         self.passwordLineEdit.setStyleSheet(
-            '''QLineEdit{ color: #000000; background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 25px;
+            '''QLineEdit{ color: #000000; background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 23px;
             padding-left: 10px;
             padding-right: 10px;}''')
         self.passwordLineEdit.setEchoMode(QLineEdit.Password)
@@ -641,7 +667,8 @@ class LoginWidget(QWidget):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHeightForWidth(self.hideButton.sizePolicy().hasHeightForWidth())
         self.hideButton.setSizePolicy(sizePolicy)
-        self.hideButton.setMaximumSize(QtCore.QSize(42, 42))
+        self.hideButton.setMinimumSize(QtCore.QSize(40, 40))
+        self.hideButton.setMaximumSize(QtCore.QSize(40, 40))
         self.hideButton.setStyleSheet('''QPushButton{ background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 20px;
             padding-left: 10px;
             padding-right: 10px;}
@@ -669,7 +696,7 @@ class LoginWidget(QWidget):
         self.enterButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.enterButton.setStyleSheet("color: rgb(255, 255, 255);\n"
                                        "background-color: rgb(44, 136, 240);\n"
-                                       "border-radius: 28px;                     /* <----  40px  */ \n"
+                                       "border-radius: 28px;\n"
                                        "border: 0px solid #094065;")
         self.enterButton.setObjectName("enterButton")
         self.entranceLayout.addWidget(self.enterButton)
@@ -704,15 +731,61 @@ class LoginWidget(QWidget):
         self.layout.addWidget(self.frame)
         self.setLayout(self.layout)
 
-        self.echo.clicked.connect(self.setMainWnd)
+        self.echo.clicked.connect(self.setMainWidget)
         self.hideButton.clicked.connect(self.toggle_visibility)
+        self.enterButton.clicked.connect(self.enter)
+        self.registrationBtn.clicked.connect(self.startRegistration)
 
         self.is_visible = False
 
-    def setMainWnd(self):
-        MainWindow = Ui_MainWindow()
-        MainWindow.show()
+    def setMainWidget(self):
+        self.clear_layout(self.layout)
+        self.main = MainWidget()
+        self.layout.addWidget(self.main)
+    def setUserMainWidget(self):
+        self.clear_layout(self.layout)
+        main = MainWidget()
+        MainWidget.createUserMainWidget()
+        self.layout.addWidget(main)
 
+    def enter(self):
+        username = self.usernameLineEdit.text()
+        password = self.passwordLineEdit.text()
+
+        if self.check_credentials(username, password):
+            #QMessageBox.information(self, "Login Successful", "Welcome, " + username + "!")
+            self.setUserMainWidget()
+        else:
+            self.usernameLineEdit.setStyleSheet('''QLineEdit{ 
+        color: #000000; 
+        background-color: #ffffff; 
+        border: 1px solid #FF56D0; 
+        border-radius: 25px;
+        padding-left: 20px;
+        padding-right: 20px;}''')
+            self.passwordFrame.setStyleSheet('''QFrame{ 
+            color: #000000; 
+            background-color: #ffffff; 
+            border: 1px solid #FF56D0; 
+            border-radius: 25px;
+            padding-left: 10px;
+            padding-right: 10px;}''')
+
+    def check_credentials(self, username, password):
+        conn = sqlite3.connect('echo_database.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user WHERE username=? AND user_password=?", (username, password))
+        user = cursor.fetchone()
+        conn.close()
+        return user is not None
+    def startRegistration(self):
+        pass
+    def clear_layout(self, layout):
+        if layout is not None:
+                for i in reversed(range(layout.count())):
+                        widget = layout.itemAt(i).widget()
+                        if widget:
+                                widget.setParent(None)
     def toggle_visibility(self):
         if self.is_visible:
             self.passwordLineEdit.setEchoMode(QLineEdit.Password)
@@ -723,6 +796,48 @@ class LoginWidget(QWidget):
             self.hideButton.setIcon(QIcon('gui/icons/eyeOpened.png'))
 
         self.is_visible = not self.is_visible
+
+class ProfileWidget(QWidget):
+    layout = None
+    def __init__(self, ID):
+        super().__init__()
+        ProfileWidget.layout = QHBoxLayout()
+        ProfileWidget.layout.setContentsMargins(0, 0, 0, 0)
+        self.id = ID
+        sqlite_connection = sqlite3.connect('echo_database.db')
+        cursor = sqlite_connection.cursor()
+
+        select = f"""SELECT username FROM user WHERE userID = {self.id};"""
+        cursor.execute(select)
+        username = cursor.fetchone()
+        self.label = QLabel(username[0])
+        ProfileWidget.layout.addWidget(self.label)
+
+        self.btn = QPushButton('Выйти из аккаунта')
+        self.btn.setMinimumSize(QtCore.QSize(164, 56))
+        self.btn.setFont(font("Cruinn", 14))
+        self.btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn.setStyleSheet('''QPushButton{
+                            color: rgb(255, 255, 255);
+                            background-color: rgb(44, 136, 240);
+                            border-radius: 28px;   
+                            border: 0px solid #094065;
+                            }
+                            QPushButton:hover {
+                            background-color: #237DE3;
+                            }''')
+        ProfileWidget.layout.addWidget(self.btn)
+
+        self.btn.clicked.connect(ProfileWidget.exit)
+
+        self.setLayout(ProfileWidget.layout)
+
+    @classmethod
+    def exit(cls):
+        MainWidget.clear_layout(Window.horizontalLayout)
+        mainWnd = MainWidget()
+        Window.horizontalLayout.addWidget(mainWnd)
+
 
 
 if __name__ == "__main__":

@@ -108,8 +108,8 @@ def create_news_card(title, subtitle, other_data):
     wrap.addWidget(subtitle_label)
 
     readArticleBtn = QtWidgets.QPushButton("Читать новость")
-    readArticleBtn.setMinimumSize(QtCore.QSize(152, 40))
-    readArticleBtn.setMaximumSize(QtCore.QSize(160, 40))
+    readArticleBtn.setMinimumSize(QtCore.QSize(180, 40))
+    readArticleBtn.setMaximumSize(QtCore.QSize(180, 40))
     font = QFont()
     font.setFamily("Muller Light")
     font.setPointSize(11)
@@ -118,7 +118,7 @@ def create_news_card(title, subtitle, other_data):
     readArticleBtn.setStyleSheet("QPushButton{\n"
 "    color: rgb(0, 0, 0);\n"
 "    background-color: rgb(229, 241, 255);\n"
-"    border-radius: 8px;                     /* <----  40px  */ \n"
+"    border-radius: 8px;\n"
 "    border: 0px solid #094065;\n"
 "}\n"
 "QPushButton::hover{\n"
@@ -260,6 +260,7 @@ class ArticlesWidget(QWidget):
 
         self.article_layout = QVBoxLayout()
         self.article_layout.setContentsMargins(0, 0, 0, 0)
+        self.article_layout.setSpacing(16)
         self.scroll_area_layout.addLayout(self.article_layout)
         self.scroll_area_content.setLayout(self.scroll_area_layout)
         self.scroll_area.setWidget(self.scroll_area_content)
