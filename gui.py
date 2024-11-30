@@ -1,11 +1,11 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import datetime
-from cards import ArticlesWidget, subArticlesWidget
-import sqlite3
-import sys
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
+import datetime
+import sys
 import sqlite3
-
+from cards import ArticlesWidget, subArticlesWidget
 
 def font(family, size):
     font = QtGui.QFont()
@@ -333,9 +333,7 @@ class Ui_MainWindow(QMainWindow):
         self.articleFrame = QtWidgets.QFrame(self.mainFrame)
         self.articleFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.articleFrame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.articleFrame.setObjectName("articleFrame")
         self.articleLayout = QtWidgets.QVBoxLayout(self.articleFrame)
-        self.articleLayout.setObjectName("articleLayout")
         self.mainLayout.addWidget(self.articleFrame)
         self.horizontalLayout.addWidget(self.mainFrame)
 
@@ -366,7 +364,7 @@ class Ui_MainWindow(QMainWindow):
         self.aifButton.clicked.connect(self.set_aif_cards)
         self.tassButton.clicked.connect(self.set_tass_cards)
 
-        self.entranceButton.clicked.connect(self.open_login_window)
+        self.entranceButton.clicked.connect(self.set_login_layout)
 
     def create_category_btn(self, id, icon):
         sqlite_connection = sqlite3.connect('echo_database.db')
@@ -382,7 +380,7 @@ class Ui_MainWindow(QMainWindow):
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button.setStyleSheet("QPushButton {\n"
                                       "    background-color: white; /* Белый фон */\n"
-                                      "    border-radius: 24px; /* Скругление углов */\n"
+                                      "    border-radius: 20px; /* Скругление углов */\n"
                                       "    padding: 8px; /* Внутренние отступы */\n"
                                       "    text-align: left; /* Выравнивание текста слева */\n"
                                       "}\n"
@@ -412,7 +410,7 @@ class Ui_MainWindow(QMainWindow):
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button.setStyleSheet("QPushButton {\n"
                                       "    background-color: white; /* Белый фон */\n"
-                                      "    border-radius: 24px; /* Скругление углов */\n"
+                                      "    border-radius: 20px; /* Скругление углов */\n"
                                       "    padding: 8px; /* Внутренние отступы */\n"
                                       "    text-align: left; /* Выравнивание текста слева */\n"
                                       "}\n"
@@ -525,26 +523,19 @@ class Ui_MainWindow(QMainWindow):
                         if widget:
                                 widget.setParent(None)
 
-    def open_login_window(self):
-        self.login_window = LoginWindow()
-        self.login_window.show()
-        self.hide()
+    def set_login_layout(self):
+        app = QtWidgets.QApplication(sys.argv)
+        self.clear_layout(self.horizontalLayout)
+        self.login = LoginWidget()
+        self.horizontalLayout.addWidget(self.login)
+        sys.exit(app.exec_())
 
-class LoginWindow(QMainWindow):
+class LoginWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Вход")
-        self.resize(1400, 900)
-        self.setStyleSheet("background-color: rgb(249, 252, 255);")
-
-        self.centralwidget = QtWidgets.QWidget()
-        self.setCentralWidget(self.centralwidget)
-
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
-        self.horizontalLayout.setContentsMargins(350, 150, 350, 150)
-        self.centralwidget.setLayout(self.horizontalLayout)
-
-        self.frame = QtWidgets.QFrame(self.centralwidget)
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.frame = QFrame(self)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -557,12 +548,10 @@ class LoginWindow(QMainWindow):
         self.frame.setFont(font)
         self.frame.setStyleSheet("QFrame{ color: #2C88F0; background-color: #ffffff; border-radius: 64px;}")
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame.setObjectName("frame")
 
         self.entranceLayout = QtWidgets.QVBoxLayout(self.frame)
         self.entranceLayout.setContentsMargins(64, 64, 64, 64)
         self.entranceLayout.setSpacing(32)
-        self.entranceLayout.setObjectName("entranceLayout")
 
         self.echoFLayout = QtWidgets.QHBoxLayout()
         self.echo = QtWidgets.QPushButton(self.frame)
@@ -610,12 +599,11 @@ class LoginWindow(QMainWindow):
         border-radius: 25px;
         padding-left: 10px;
         padding-right: 10px;}''')
-        self.usernameLineEdit.setObjectName("usernameLineEdit")
         self.usernameLayout.addWidget(self.usernameLineEdit)
         self.entranceLayout.addLayout(self.usernameLayout)
+
         self.passwordLayout = QtWidgets.QVBoxLayout()
         self.passwordLayout.setSpacing(0)
-        self.passwordLayout.setObjectName("passwordLayout")
 
         self.passwordLabel = QtWidgets.QLabel(self.frame)
         self.passwordLabel.setText('Пароль')
@@ -623,27 +611,54 @@ class LoginWindow(QMainWindow):
         font.setFamily("Muller Light")
         font.setPointSize(14)
         self.passwordLabel.setFont(font)
-        self.passwordLabel.setObjectName("passwordLabel")
         self.passwordLayout.addWidget(self.passwordLabel)
-        self.passwordLineEdit = QtWidgets.QLineEdit(self.frame)
+
+        self.passwordFrame = QFrame(self.frame)
+        self.passwordFrame.setStyleSheet(
+            '''QFrame{ color: #000000; background-color: #ffffff; border: 1px solid #B1D5FF; border-radius: 25px;
+            padding-left: 10px;
+            padding-right: 10px;}''')
+        self.passwordFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.passwordFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.passwordLayout2 = QHBoxLayout(self.frame)
+        self.passwordLayout2.setContentsMargins(0, 2, 2, 2)
+
+        self.passwordLineEdit = QtWidgets.QLineEdit(self.passwordFrame)
         self.passwordLineEdit.setMinimumSize(QtCore.QSize(0, 50))
         font = QtGui.QFont()
         font.setFamily("Muller Light")
         font.setPointSize(10)
         self.passwordLineEdit.setFont(font)
         self.passwordLineEdit.setStyleSheet(
-            '''QLineEdit{ color: #000000; background-color: #ffffff; border: 1px solid #B1D5FF; border-radius: 25px;
+            '''QLineEdit{ color: #000000; background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 25px;
             padding-left: 10px;
             padding-right: 10px;}''')
-        self.passwordLineEdit.setObjectName("passwordLineEdit")
-        self.passwordLayout.addWidget(self.passwordLineEdit)
+        self.passwordLineEdit.setEchoMode(QLineEdit.Password)
+        self.passwordLayout2.addWidget(self.passwordLineEdit)
+
+        self.hideButton = QPushButton(self.passwordFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHeightForWidth(self.hideButton.sizePolicy().hasHeightForWidth())
+        self.hideButton.setSizePolicy(sizePolicy)
+        self.hideButton.setMaximumSize(QtCore.QSize(42, 42))
+        self.hideButton.setStyleSheet('''QPushButton{ background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 20px;
+            padding-left: 10px;
+            padding-right: 10px;}
+            QPushButton::hover{
+            background-color: #E5F1FF;}''')
+        self.hideButton.setIcon(QIcon('gui/icons/eyeClosed.png'))
+        self.hideButton.setIconSize(QSize(24, 24))
+        self.hideButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+
+        self.passwordLayout2.addWidget(self.hideButton)
+        self.passwordFrame.setLayout(self.passwordLayout2)
+        self.passwordLayout.addWidget(self.passwordFrame)
         self.entranceLayout.addLayout(self.passwordLayout)
 
         self.enterButton = QtWidgets.QPushButton(self.frame)
         self.enterButton.setText('Войти')
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.enterButton.sizePolicy().hasHeightForWidth())
         self.enterButton.setSizePolicy(sizePolicy)
         self.enterButton.setMinimumSize(QtCore.QSize(164, 56))
@@ -675,9 +690,8 @@ class LoginWindow(QMainWindow):
         self.label_under_form.setWordWrap(True)
         self.textUnderLayout.addWidget(self.label_under_form)
 
-        self.registrationBtn = QtWidgets.QPushButton(self.frame)
+        self.registrationBtn = QPushButton(self.frame)
         self.registrationBtn.setText("зарегистрироваться!")
-        #font.setUnderline(True)
         self.registrationBtn.setFont(font)
         self.registrationBtn.setStyleSheet('''color: #2C88F0;
                                            background-color: #ffffff;
@@ -687,19 +701,31 @@ class LoginWindow(QMainWindow):
         self.textUnderLayout.addWidget(self.registrationBtn)
         self.entranceLayout.addLayout(self.textUnderLayout)
 
-        self.horizontalLayout.addWidget(self.frame)
+        self.layout.addWidget(self.frame)
+        self.setLayout(self.layout)
 
-        self.echo.clicked.connect(self.openMainWnd)
+        self.echo.clicked.connect(self.setMainWnd)
+        self.hideButton.clicked.connect(self.toggle_visibility)
 
-    def openMainWnd(self):
+        self.is_visible = False
 
+    def setMainWnd(self):
         MainWindow = Ui_MainWindow()
         MainWindow.show()
-        self.hide()
+
+    def toggle_visibility(self):
+        if self.is_visible:
+            self.passwordLineEdit.setEchoMode(QLineEdit.Password)
+            self.hideButton.setIcon(QIcon('gui/icons/eyeClosed.png'))
+
+        else:
+            self.passwordLineEdit.setEchoMode(QLineEdit.Normal)
+            self.hideButton.setIcon(QIcon('gui/icons/eyeOpened.png'))
+
+        self.is_visible = not self.is_visible
 
 
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     MainWindow.show()
