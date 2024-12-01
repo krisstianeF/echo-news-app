@@ -268,9 +268,15 @@ class MainWidget(QWidget):
         sizePolicy.setHeightForWidth(self.find_btn.sizePolicy().hasHeightForWidth())
         self.find_btn.setSizePolicy(sizePolicy)
         self.find_btn.setMinimumSize(QtCore.QSize(120, 40))
-        self.find_btn.setFont(font("Muller Light", 10))
+        self.find_btn.setFont(font("Muller Regular", 10))
         self.find_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.find_btn.setStyleSheet("color: rgb(255, 255, 255); background-color: rgb(44, 136, 240); border-radius: 20px; border: 0px solid #094065;")
+        self.find_btn.setStyleSheet('''QPushButton{
+        color: rgb(255, 255, 255); 
+        background-color: rgb(44, 136, 240); 
+        border-radius: 20px; 
+        border: 0px solid #094065;}
+        QPushButton::hover{
+        background-color: #237DE3;}''')
         self.topMenuLayout.addWidget(self.find_btn)
 
         self.find_btn.setText("Найти")
@@ -801,42 +807,488 @@ class ProfileWidget(QWidget):
     layout = None
     def __init__(self, ID):
         super().__init__()
-        ProfileWidget.layout = QHBoxLayout()
-        ProfileWidget.layout.setContentsMargins(0, 0, 0, 0)
+
         self.id = ID
         sqlite_connection = sqlite3.connect('echo_database.db')
         cursor = sqlite_connection.cursor()
 
-        select = f"""SELECT username FROM user WHERE userID = {self.id};"""
+        select = f"""SELECT name, username FROM user WHERE userID = {self.id};"""
         cursor.execute(select)
-        username = cursor.fetchone()
-        self.label = QLabel(username[0])
-        ProfileWidget.layout.addWidget(self.label)
+        user = cursor.fetchone()
+        self.name = user[0]
+        self.username = '@' + user[1]
 
-        self.btn = QPushButton('Выйти из аккаунта')
-        self.btn.setMinimumSize(QtCore.QSize(164, 56))
-        self.btn.setFont(font("Cruinn", 14))
-        self.btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn.setStyleSheet('''QPushButton{
-                            color: rgb(255, 255, 255);
-                            background-color: rgb(44, 136, 240);
-                            border-radius: 28px;   
-                            border: 0px solid #094065;
-                            }
-                            QPushButton:hover {
-                            background-color: #237DE3;
-                            }''')
-        ProfileWidget.layout.addWidget(self.btn)
+        sqlite_connection.close()
 
-        self.btn.clicked.connect(ProfileWidget.exit)
 
-        self.setLayout(ProfileWidget.layout)
+        ProfileWidget.layout = QVBoxLayout()
+        ProfileWidget.layout.setContentsMargins(64, 0, 64, 0)
+
+        ProfileWidget.layout = QtWidgets.QVBoxLayout(self)
+        ProfileWidget.layout.setContentsMargins(0, 0, 0, 0)
+
+        self.scrollArea = QtWidgets.QScrollArea(self)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setStyleSheet('''QScrollArea {
+                                border: none;
+                                }
+                                /* VERTICAL SCROLLBAR */
+                                 QScrollBar:vertical {
+                                    border: none;
+                                    background: rgb(255, 255, 255);
+                                    width: 14px;
+                                    margin: 15px 0 15px 0;
+                                    border-radius: 0px;
+                                 }
+
+                                /*  HANDLE BAR VERTICAL */
+                                QScrollBar::handle:vertical {	
+                                    background-color: rgb(154, 198, 249);
+                                    min-height: 30px;
+                                    border-radius: 7px;
+                                }
+                                QScrollBar::handle:vertical:hover{	
+                                    background-color: rgb(177, 213, 255);
+                                }
+                                QScrollBar::handle:vertical:pressed {	
+                                    background-color: rgb(177, 213, 255);
+                                }
+
+                                /* BTN TOP - SCROLLBAR */
+                                QScrollBar::sub-line:vertical {
+                                    border: none;
+                                    background-color: rgb(255, 255, 255);
+                                    height: 15px;
+                                    border-top-left-radius: 7px;
+                                    border-top-right-radius: 7px;
+                                    subcontrol-position: top;
+                                    subcontrol-origin: margin;
+                                }
+                                QScrollBar::sub-line:vertical:hover {	
+                                    background-color: rgb(255, 255, 255);
+                                }
+                                QScrollBar::sub-line:vertical:pressed {	
+                                    background-color: rgb(177, 213, 255);
+                                }
+
+                                /* BTN BOTTOM - SCROLLBAR */
+                                QScrollBar::add-line:vertical {
+                                    border: none;
+                                    background-color: rgb(255, 255, 255);
+                                    height: 15px;
+                                    border-bottom-left-radius: 7px;
+                                    border-bottom-right-radius: 7px;
+                                    subcontrol-position: bottom;
+                                    subcontrol-origin: margin;
+                                }
+                                QScrollBar::add-line:vertical:hover {	
+                                    background-color: rgb(255, 255, 255);
+                                }
+                                QScrollBar::add-line:vertical:pressed {	
+                                    background-color: rgb(177, 213, 255);
+                                }
+
+                                /* RESET ARROW */
+                                QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+                                    background: none;
+                                }
+                                QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                                    background: none;
+                                }''')
+
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1377, 1256))
+
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
+        self.verticalLayout_2.setContentsMargins(64, 0, 64, 0)
+
+        self.profileFrame = QtWidgets.QFrame(self.scrollAreaWidgetContents)
+        self.profileFrame.setMinimumSize(QtCore.QSize(0, 1256))
+        self.profileFrame.setMaximumSize(QtCore.QSize(16777215, 1256))
+        self.profileFrame.setStyleSheet("QFrame{\n"
+                                        "background-color: #ffffff;\n"
+                                        "border: 0px solid;\n"
+                                        "border-radius: 32px;}\n"
+                                        "")
+        self.profileFrame.setObjectName("profileFrame")
+
+        self.mainLayout = QtWidgets.QVBoxLayout(self.profileFrame)
+        self.mainLayout.setContentsMargins(64, 64, 64, 64)
+        self.mainLayout.setSpacing(32)
+
+        self.firstLayout = QtWidgets.QHBoxLayout()
+        self.firstLayout.setSpacing(32)
+
+        self.avatarBtn = QtWidgets.QPushButton(self.profileFrame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.avatarBtn.sizePolicy().hasHeightForWidth())
+        self.avatarBtn.setSizePolicy(sizePolicy)
+        self.avatarBtn.setMinimumSize(QtCore.QSize(96, 96))
+        self.avatarBtn.setMaximumSize(QtCore.QSize(96, 96))
+        font = QtGui.QFont()
+        font.setFamily("Cruinn")
+        font.setPointSize(12)
+        self.avatarBtn.setFont(font)
+        self.avatarBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.avatarBtn.setStyleSheet("border: 0px solid;")
+        self.avatarBtn.setText("")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("gui\\icons/avatars/avatar_01.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.avatarBtn.setIcon(icon)
+        self.avatarBtn.setIconSize(QtCore.QSize(96, 96))
+        self.firstLayout.addWidget(self.avatarBtn)
+        self.usernameLayout = QtWidgets.QVBoxLayout()
+        self.usernameLayout.setSpacing(8)
+
+        self.name1 = QtWidgets.QLabel(self.name)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.name1.sizePolicy().hasHeightForWidth())
+        self.name1.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(24)
+        self.name1.setFont(font)
+        self.usernameLayout.addWidget(self.name1, 0, QtCore.Qt.AlignTop)
+
+        self.username1 = QtWidgets.QLabel(self.username)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.username1.sizePolicy().hasHeightForWidth())
+        self.username1.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(16)
+        self.username1.setFont(font)
+        self.username1.setStyleSheet("color: #2C88F0;")
+        self.usernameLayout.addWidget(self.username1, 0, QtCore.Qt.AlignTop)
+        self.firstLayout.addLayout(self.usernameLayout)
+        self.mainLayout.addLayout(self.firstLayout)
+
+        self.listsLayout = QtWidgets.QHBoxLayout()
+        self.listsLayout.setSpacing(16)
+
+        self.likeListBtn = QtWidgets.QPushButton('Избранное')
+        self.likeListBtn.setMinimumSize(QtCore.QSize(0, 120))
+        self.likeListBtn.setMaximumSize(QtCore.QSize(16777215, 120))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(10)
+        self.likeListBtn.setFont(font)
+        self.likeListBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.likeListBtn.setStyleSheet("QPushButton {\n"
+                                       "    color: #2C88F0;\n"
+                                       "    background-color: #E5F1FF; /* Белый фон */\n"
+                                       "    border-radius: 32px; /* Скругление углов */\n"
+                                       "    padding: 32px; /* Внутренние отступы */\n"
+                                       "    text-align: left; /* Выравнивание текста слева */\n"
+                                       "}\n"
+                                       "\n"
+                                       "QPushButton::icon {\n"
+                                       "    padding-right: 16px; /* Отступ между иконкой и текстом */\n"
+                                       "}\n"
+                                       "\n"
+                                       "QPushButton::hover {\n"
+                                       "    background-color: #F1F8FF; /* Цвет фона при наведении */\n"
+                                       "}\n"
+                                       "\n"
+                                       "")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("gui\\icons/heart.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.likeListBtn.setIcon(icon1)
+        self.likeListBtn.setIconSize(QtCore.QSize(32, 32))
+        self.listsLayout.addWidget(self.likeListBtn)
+
+        self.readLaterListBtn = QtWidgets.QPushButton('Читать позже')
+        self.readLaterListBtn.setMinimumSize(QtCore.QSize(0, 120))
+        self.readLaterListBtn.setMaximumSize(QtCore.QSize(16777215, 120))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(10)
+        self.readLaterListBtn.setFont(font)
+        self.readLaterListBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.readLaterListBtn.setStyleSheet("QPushButton {\n"
+                                            "    color: #2C88F0;\n"
+                                            "    background-color: #E5F1FF; /* Белый фон */\n"
+                                            "    border-radius: 32px; /* Скругление углов */\n"
+                                            "    padding: 32px; /* Внутренние отступы */\n"
+                                            "    text-align: left; /* Выравнивание текста слева */\n"
+                                            "}\n"
+                                            "\n"
+                                            "QPushButton::icon {\n"
+                                            "    padding-right: 16px; /* Отступ между иконкой и текстом */\n"
+                                            "}\n"
+                                            "\n"
+                                            "QPushButton::hover {\n"
+                                            "    background-color: #F1F8FF; /* Цвет фона при наведении */\n"
+                                            "}\n"
+                                            "\n"
+                                            "")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap("gui\\icons/bookmark.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.readLaterListBtn.setIcon(icon2)
+        self.readLaterListBtn.setIconSize(QtCore.QSize(32, 32))
+        self.listsLayout.addWidget(self.readLaterListBtn)
+        self.mainLayout.addLayout(self.listsLayout)
+
+        self.userDataLayout = QtWidgets.QVBoxLayout()
+        self.userDataLayout.setSpacing(16)
+
+        self.userDataLadel = QtWidgets.QLabel('Личные данные')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.userDataLadel.sizePolicy().hasHeightForWidth())
+        self.userDataLadel.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(16)
+        self.userDataLadel.setFont(font)
+        self.userDataLadel.setStyleSheet("color: #2C88F0;")
+        self.userDataLayout.addWidget(self.userDataLadel)
+
+        self.nameFrame = QtWidgets.QFrame(self.profileFrame)
+        self.nameFrame.setStyleSheet("QFrame{\n"
+                                     "background-color: #F1F8FF;\n"
+                                     "border: 0 px solid;\n"
+                                     "border-radius: 16px;}")
+        self.nameFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.nameFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.nameLayout = QtWidgets.QHBoxLayout(self.nameFrame)
+        self.nameLayout.setContentsMargins(32, 16, 16, 16)
+        self.nameLayout.setSpacing(8)
+
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setSpacing(12)
+
+        self.nameLabel = QtWidgets.QLabel('Публичное имя')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.nameLabel.sizePolicy().hasHeightForWidth())
+        self.nameLabel.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(12)
+        self.nameLabel.setFont(font)
+        self.nameLabel.setStyleSheet("color: #2C88F0;")
+        self.verticalLayout_3.addWidget(self.nameLabel)
+
+        self.name2 = QtWidgets.QLabel(self.name)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.name2.sizePolicy().hasHeightForWidth())
+        self.name2.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(16)
+        self.name2.setFont(font)
+        self.verticalLayout_3.addWidget(self.name2)
+        self.nameLayout.addLayout(self.verticalLayout_3)
+
+        self.changeNameBtn = QtWidgets.QPushButton(self.nameFrame)
+        self.changeNameBtn.setMinimumSize(QtCore.QSize(48, 48))
+        self.changeNameBtn.setMaximumSize(QtCore.QSize(48, 48))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(10)
+        self.changeNameBtn.setFont(font)
+        self.changeNameBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.changeNameBtn.setStyleSheet("QPushButton {\n"
+                                         "    background-color: #2C88F0; /* Белый фон */\n"
+                                         "    border-radius: 12px; /* Скругление углов */\n"
+                                         "}\n"
+                                         "\n"
+                                         "QPushButton::hover {\n"
+                                         "    background-color: #237DE3; /* Цвет фона при наведении */\n"
+                                         "}\n"
+                                         "\n"
+                                         "")
+        self.changeNameBtn.setText("")
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap("gui\\icons/settings.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.changeNameBtn.setIcon(icon3)
+        self.changeNameBtn.setIconSize(QtCore.QSize(24, 24))
+        self.nameLayout.addWidget(self.changeNameBtn)
+        self.userDataLayout.addWidget(self.nameFrame)
+
+        self.usernameFrame = QtWidgets.QFrame(self.profileFrame)
+        self.usernameFrame.setStyleSheet("QFrame{\n"
+                                         "background-color: #F1F8FF;\n"
+                                         "border: 0 px solid;\n"
+                                         "border-radius: 16px;}")
+        self.usernameFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.usernameFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.nameLayout_2 = QtWidgets.QHBoxLayout(self.usernameFrame)
+        self.nameLayout_2.setContentsMargins(32, 16, 16, 16)
+        self.nameLayout_2.setSpacing(8)
+
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setSpacing(12)
+
+        self.usernameLabel = QtWidgets.QLabel('Имя пользователя')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.usernameLabel.sizePolicy().hasHeightForWidth())
+        self.usernameLabel.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(12)
+        self.usernameLabel.setFont(font)
+        self.usernameLabel.setStyleSheet("color: #2C88F0;")
+        self.verticalLayout_4.addWidget(self.usernameLabel)
+
+        self.username2 = QtWidgets.QLabel(self.username)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.username2.sizePolicy().hasHeightForWidth())
+        self.username2.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(16)
+        self.username2.setFont(font)
+        self.verticalLayout_4.addWidget(self.username2)
+        self.nameLayout_2.addLayout(self.verticalLayout_4)
+
+        self.changeUsernameBtn = QtWidgets.QPushButton(self.usernameFrame)
+        self.changeUsernameBtn.setMinimumSize(QtCore.QSize(48, 48))
+        self.changeUsernameBtn.setMaximumSize(QtCore.QSize(48, 48))
+        font = QtGui.QFont()
+        font.setFamily("Muller Light")
+        font.setPointSize(10)
+        self.changeUsernameBtn.setFont(font)
+        self.changeUsernameBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.changeUsernameBtn.setStyleSheet("QPushButton {\n"
+                                             "    background-color: #2C88F0; /* Белый фон */\n"
+                                             "    border-radius: 12px; /* Скругление углов */\n"
+                                             "}\n"
+                                             "\n"
+                                             "QPushButton::hover {\n"
+                                             "    background-color: #237DE3; /* Цвет фона при наведении */\n"
+                                             "}\n"
+                                             "\n"
+                                             "")
+        self.changeUsernameBtn.setText("")
+        self.changeUsernameBtn.setIcon(icon3)
+        self.changeUsernameBtn.setIconSize(QtCore.QSize(24, 24))
+        self.nameLayout_2.addWidget(self.changeUsernameBtn)
+        self.userDataLayout.addWidget(self.usernameFrame)
+        self.mainLayout.addLayout(self.userDataLayout)
+
+        self.btnsLayout = QtWidgets.QVBoxLayout()
+        self.btnsLayout.setSpacing(16)
+
+        self.changePasswordBtn = QtWidgets.QPushButton('Сменить пароль')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.changePasswordBtn.sizePolicy().hasHeightForWidth())
+        self.changePasswordBtn.setSizePolicy(sizePolicy)
+        self.changePasswordBtn.setMinimumSize(QtCore.QSize(250, 48))
+        self.changePasswordBtn.setMaximumSize(QtCore.QSize(16777215, 48))
+        font = QtGui.QFont()
+        font.setFamily("Muller Regular")
+        font.setPointSize(11)
+        self.changePasswordBtn.setFont(font)
+        self.changePasswordBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.changePasswordBtn.setStyleSheet('''QPushButton{
+                                             color: rgb(255, 255, 255);
+                                             background-color: rgb(44, 136, 240);
+                                             border-radius: 24px;
+                                             border: 0px solid;
+                                             }
+                                             QPushButton::hover{
+                                             background-color: #237DE3;}
+                                             ''')
+        self.btnsLayout.addWidget(self.changePasswordBtn)
+
+        self.exitBtn = QtWidgets.QPushButton('Выйти из аккаунта')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.exitBtn.sizePolicy().hasHeightForWidth())
+        self.exitBtn.setSizePolicy(sizePolicy)
+        self.exitBtn.setMinimumSize(QtCore.QSize(250, 48))
+        self.exitBtn.setMaximumSize(QtCore.QSize(16777215, 48))
+        font = QtGui.QFont()
+        font.setFamily("Muller Regular")
+        font.setPointSize(11)
+        self.exitBtn.setFont(font)
+        self.exitBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.exitBtn.setStyleSheet("color: #FF56D0;\n"
+                                   "background-color: #FFEBF9;\n"
+                                   "border-radius: 24px;\n"
+                                   "border: 0px solid;")
+        self.btnsLayout.addWidget(self.exitBtn)
+
+        self.deleteAccountBtn = QtWidgets.QPushButton('Удалить аккаунт')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.deleteAccountBtn.sizePolicy().hasHeightForWidth())
+        self.deleteAccountBtn.setSizePolicy(sizePolicy)
+        self.deleteAccountBtn.setMinimumSize(QtCore.QSize(250, 48))
+        self.deleteAccountBtn.setMaximumSize(QtCore.QSize(16777215, 48))
+        font = QtGui.QFont()
+        font.setFamily("Muller Regular")
+        font.setPointSize(11)
+        self.deleteAccountBtn.setFont(font)
+        self.deleteAccountBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.deleteAccountBtn.setStyleSheet("color: #FF56D0;\n"
+                                            "background-color: #FFEBF9;\n"
+                                            "border-radius: 24px;\n"
+                                            "border: 0px solid;")
+        self.btnsLayout.addWidget(self.deleteAccountBtn)
+
+        self.mainLayout.addLayout(self.btnsLayout)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.mainLayout.addItem(spacerItem)
+        self.verticalLayout_2.addWidget(self.profileFrame)
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        ProfileWidget.layout.addWidget(self.scrollArea)
+
+
+        self.likeListBtn.clicked.connect(self.set_likeList)
+        self.readLaterListBtn.clicked.connect(self.set_readLaterList)
+
+        self.changeNameBtn.clicked.connect(self.changeName)
+        self.changeUsernameBtn.clicked.connect(self.changeUserName)
+
+        self.changePasswordBtn.clicked.connect(self.changePassword)
+        self.exitBtn.clicked.connect(ProfileWidget.exit)
+        self.deleteAccountBtn.clicked.connect(ProfileWidget.deleteAccount)
+
+
+
+    def set_likeList(self):
+        pass
+    def set_readLaterList(self):
+        pass
+    def changeName(self):
+        pass
+    def changeUserName(self):
+        pass
+    def changePassword(self):
+        pass
 
     @classmethod
     def exit(cls):
         MainWidget.clear_layout(Window.horizontalLayout)
         mainWnd = MainWidget()
         Window.horizontalLayout.addWidget(mainWnd)
+
+    @classmethod
+    def deleteAccount(cls):
+        pass
 
 
 

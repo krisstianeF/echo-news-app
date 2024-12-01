@@ -49,7 +49,7 @@ def create_news_card(title, subtitle, other_data):
     other_data_label = QLabel(other_data)
     font = QFont("Muller", 9, QFont.Normal)
     other_data_label.setFont(font)
-    other_data_label.setStyleSheet("color: rgb(154, 198, 249);")
+    other_data_label.setStyleSheet("color: #6BB0FF;")
     other_data_layout.addWidget(other_data_label)
 
     # Добавляем горизонтальный спейсер
@@ -64,12 +64,18 @@ def create_news_card(title, subtitle, other_data):
     favorite_button.setIconSize(QSize(icon_size, icon_size))
     favorite_button.setFixedSize(icon_size, icon_size)
     favorite_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+    favorite_button.setStyleSheet('''QPushButton:hover {
+    icon: url(gui/icons/heart2.png);
+    }''')
 
     read_later_button = QPushButton()
     read_later_button.setIcon(QIcon("gui/icons/bookmark.png"))
     read_later_button.setIconSize(QSize(icon_size, icon_size))
     read_later_button.setFixedSize(icon_size, icon_size)
     read_later_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+    read_later_button.setStyleSheet('''QPushButton:hover {
+        icon: url(gui/icons/bookmark2.png);
+        }''')
 
     other_data_layout.addWidget(favorite_button)
     other_data_layout.addWidget(read_later_button)
@@ -100,7 +106,7 @@ def create_news_card(title, subtitle, other_data):
     font.setFamily("Muller")
     font.setPointSize(12)
     subtitle_label.setFont(font)
-    subtitle_label.setStyleSheet("color: #D0D7E0;")
+    subtitle_label.setStyleSheet("color: #BFC8D3;")
     subtitle_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
     subtitle_label.setWordWrap(True)
 
@@ -111,18 +117,18 @@ def create_news_card(title, subtitle, other_data):
     readArticleBtn.setMinimumSize(QtCore.QSize(180, 40))
     readArticleBtn.setMaximumSize(QtCore.QSize(180, 40))
     font = QFont()
-    font.setFamily("Muller Light")
+    font.setFamily("Muller Regular")
     font.setPointSize(11)
     readArticleBtn.setFont(font)
     readArticleBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-    readArticleBtn.setStyleSheet("QPushButton{\n"
-"    color: rgb(0, 0, 0);\n"
-"    background-color: rgb(229, 241, 255);\n"
-"    border-radius: 8px;\n"
-"    border: 0px solid #094065;\n"
-"}\n"
-"QPushButton::hover{\n"
-"    background-color: #C7E0FD;}")
+    readArticleBtn.setStyleSheet('''QPushButton{
+    color: rgb(255, 255, 255);
+    background-color: #2C88F0;
+    border-radius: 8px;
+    border: 0px solid #094065;
+}
+QPushButton::hover{
+    background-color: #237DE3;}''')
     wrap.addWidget(readArticleBtn)
     card_layout.addLayout(wrap)
 
