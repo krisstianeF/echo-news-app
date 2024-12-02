@@ -6,6 +6,8 @@ from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import QSize
 from datetime import datetime
 import sqlite3
+import webbrowser
+
 def font(family, size):
     font = QFont()
     font.setFamily(family)
@@ -19,8 +21,12 @@ def transform_date(date_str):
         print(f"Ошибка преобразования даты: {e}")
         return None
 
+def open_link(url):
+    if url:
+        webbrowser.open(url)
+
 ''' Создание интерфейса карточки новости '''
-def create_news_card(title, subtitle, other_data):
+def create_news_card(title, subtitle, other_data, url):
     # Создание фрейма для карточки новости
     card_frame = QFrame()
     card_frame.setStyleSheet("background-color: white; border-radius: 16px;")
@@ -129,6 +135,7 @@ def create_news_card(title, subtitle, other_data):
 }
 QPushButton::hover{
     background-color: #237DE3;}''')
+    readArticleBtn.clicked.connect(lambda: open_link(url))
     wrap.addWidget(readArticleBtn)
     card_layout.addLayout(wrap)
 
@@ -162,7 +169,11 @@ def get_article_card_data(id) -> list:
     subtitle = data[0][1]
     other = '    |    '.join(data[1])
 
-    data = [title, subtitle, other]
+    select = f"""SELECT article_link FROM article WHERE articleID = {id};"""
+    cursor.execute(select)
+    url = cursor.fetchone()
+
+    data = [title, subtitle, other, url[0]]
     return data
 
 '''Формирование списка id из sql запроса request'''
@@ -325,7 +336,8 @@ class ArticlesWidget(QWidget):
             data = get_article_card_data(i)
             news_card = create_news_card(data[0],
                                          data[1],
-                                         data[2])
+                                         data[2],
+                                         data[3])
             self.article_layout.addWidget(news_card)
         self.scroll_area.update()
 
@@ -501,6 +513,7 @@ class subArticlesWidget(QWidget):
             data = get_article_card_data(i)
             news_card = create_news_card(data[0],
                                          data[1],
-                                         data[2])
+                                         data[2],
+                                         data[3])
             self.article_layout.addWidget(news_card)
         self.scroll_area.update()
