@@ -7,6 +7,8 @@ from PyQt5.QtCore import QSize
 from datetime import datetime
 import sqlite3
 import webbrowser
+import os
+from blob import blob_to_png, crop_image
 
 def font(family, size):
     font = QFont()
@@ -26,28 +28,49 @@ def open_link(url):
         webbrowser.open(url)
 
 ''' Создание интерфейса карточки новости '''
-def create_news_card(title, subtitle, other_data, url):
+def create_news_card(title, subtitle, other_data, url, png_data):
     # Создание фрейма для карточки новости
     card_frame = QFrame()
     card_frame.setStyleSheet("background-color: white; border-radius: 16px;")
 
     card_layout = QHBoxLayout()
-    card_layout.setContentsMargins(32, 16, 16, 16)
+    card_layout.setContentsMargins(16, 16, 16, 16)
     card_layout.setSpacing(16)
 
     wrap = QVBoxLayout()
 
-    # изображение
-    image_label = QLabel()
-    sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-    sizePolicy.setHeightForWidth(image_label.sizePolicy().hasHeightForWidth())
-    image_label.setSizePolicy(sizePolicy)
-    image_label.setMinimumSize(QtCore.QSize(180, 180))
-    image_label.setStyleSheet('''QLabel{
-    background-color: rgb(85, 170, 255);
-    border-radius: 16px;
-    border: 0px;}''')
-    #card_layout.addWidget(image_label)
+    if png_data != None:
+        # изображение
+        imageButton = QPushButton()
+        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy.setHeightForWidth(imageButton.sizePolicy().hasHeightForWidth())
+        imageButton.setSizePolicy(sizePolicy)
+        #imageButton.setMinimumSize(QtCore.QSize(250, 180))
+        imageButton.setStyleSheet(f'''QPushButton{{
+        border-radius: 16px;
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+        }}''')
+
+        # Сохранение файла
+        with open('article_image.png', 'wb') as f:
+            f.write(png_data)
+        crop_image('article_image.png', 'article_image.png', 1250, 1000, 80)
+
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap('article_image.png'), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        imageButton.setIcon(icon)
+        imageButton.setIconSize(QtCore.QSize(250, 180))
+
+        # Удаление файла
+        if os.path.exists('article_image.png'):
+            os.remove('article_image.png')
+
+
+        card_layout.addWidget(imageButton)
+
 
     # Лейбл для других данных и кнопки
     other_data_layout = QHBoxLayout()
@@ -173,7 +196,13 @@ def get_article_card_data(id) -> list:
     cursor.execute(select)
     url = cursor.fetchone()
 
-    data = [title, subtitle, other, url[0]]
+    select = f"""SELECT image FROM article WHERE articleID = {id};"""
+    cursor.execute(select)
+    image = cursor.fetchone()
+    blob_image = image[0]
+    png_data = blob_to_png(blob_image)
+
+    data = [title, subtitle, other, url[0], png_data]
     return data
 
 '''Формирование списка id из sql запроса request'''
@@ -192,6 +221,72 @@ def get_ids(request) -> list:
     return ids
 
 class ArticlesWidget(QWidget):
+    scrollStyle = f'''QScrollArea {{
+                                        border: none;
+                                        }}
+                                        /* VERTICAL SCROLLBAR */
+                                         QScrollBar:vertical {{
+                                            border: none;
+                                            background: rgb(255, 255, 255);
+                                            width: 14px;
+                                            margin: 15px 0 15px 0;
+                                            border-radius: 0px;
+                                         }}
+
+                                        /*  HANDLE BAR VERTICAL */
+                                        QScrollBar::handle:vertical {{	
+                                            background-color: rgb(154, 198, 249);
+                                            min-height: 30px;
+                                            border-radius: 7px;
+                                        }}
+                                        QScrollBar::handle:vertical:hover{{	
+                                            background-color: rgb(177, 213, 255);
+                                        }}
+                                        QScrollBar::handle:vertical:pressed {{	
+                                            background-color: rgb(177, 213, 255);
+                                        }}
+
+                                        /* BTN TOP - SCROLLBAR */
+                                        QScrollBar::sub-line:vertical {{
+                                            border: none;
+                                            background-color: rgb(255, 255, 255);
+                                            height: 15px;
+                                            border-top-left-radius: 7px;
+                                            border-top-right-radius: 7px;
+                                            subcontrol-position: top;
+                                            subcontrol-origin: margin;
+                                        }}
+                                        QScrollBar::sub-line:vertical:hover {{	
+                                            background-color: rgb(255, 255, 255);
+                                        }}
+                                        QScrollBar::sub-line:vertical:pressed {{	
+                                            background-color: rgb(177, 213, 255);
+                                        }}
+
+                                        /* BTN BOTTOM - SCROLLBAR */
+                                        QScrollBar::add-line:vertical {{
+                                            border: none;
+                                            background-color: rgb(255, 255, 255);
+                                            height: 15px;
+                                            border-bottom-left-radius: 7px;
+                                            border-bottom-right-radius: 7px;
+                                            subcontrol-position: bottom;
+                                            subcontrol-origin: margin;
+                                        }}
+                                        QScrollBar::add-line:vertical:hover {{	
+                                            background-color: rgb(255, 255, 255);
+                                        }}
+                                        QScrollBar::add-line:vertical:pressed {{	
+                                            background-color: rgb(177, 213, 255);
+                                        }}
+
+                                        /* RESET ARROW */
+                                        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {{
+                                            background: none;
+                                        }}
+                                        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                                            background: none;
+                                        }}'''
     def __init__(self, id_request):
         super().__init__()
 
@@ -203,72 +298,7 @@ class ArticlesWidget(QWidget):
         # Создание QScrollArea
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet('''QScrollArea {
-                                border: none;
-                                }
-                                /* VERTICAL SCROLLBAR */
-                                 QScrollBar:vertical {
-                                    border: none;
-                                    background: rgb(255, 255, 255);
-                                    width: 14px;
-                                    margin: 15px 0 15px 0;
-                                    border-radius: 0px;
-                                 }
-
-                                /*  HANDLE BAR VERTICAL */
-                                QScrollBar::handle:vertical {	
-                                    background-color: rgb(154, 198, 249);
-                                    min-height: 30px;
-                                    border-radius: 7px;
-                                }
-                                QScrollBar::handle:vertical:hover{	
-                                    background-color: rgb(177, 213, 255);
-                                }
-                                QScrollBar::handle:vertical:pressed {	
-                                    background-color: rgb(177, 213, 255);
-                                }
-
-                                /* BTN TOP - SCROLLBAR */
-                                QScrollBar::sub-line:vertical {
-                                    border: none;
-                                    background-color: rgb(255, 255, 255);
-                                    height: 15px;
-                                    border-top-left-radius: 7px;
-                                    border-top-right-radius: 7px;
-                                    subcontrol-position: top;
-                                    subcontrol-origin: margin;
-                                }
-                                QScrollBar::sub-line:vertical:hover {	
-                                    background-color: rgb(255, 255, 255);
-                                }
-                                QScrollBar::sub-line:vertical:pressed {	
-                                    background-color: rgb(177, 213, 255);
-                                }
-
-                                /* BTN BOTTOM - SCROLLBAR */
-                                QScrollBar::add-line:vertical {
-                                    border: none;
-                                    background-color: rgb(255, 255, 255);
-                                    height: 15px;
-                                    border-bottom-left-radius: 7px;
-                                    border-bottom-right-radius: 7px;
-                                    subcontrol-position: bottom;
-                                    subcontrol-origin: margin;
-                                }
-                                QScrollBar::add-line:vertical:hover {	
-                                    background-color: rgb(255, 255, 255);
-                                }
-                                QScrollBar::add-line:vertical:pressed {	
-                                    background-color: rgb(177, 213, 255);
-                                }
-
-                                /* RESET ARROW */
-                                QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
-                                    background: none;
-                                }
-                                QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-                                    background: none;
-                                }''')
+        self.scroll_area.setStyleSheet(ArticlesWidget.scrollStyle)
 
         # Внутренний виджет для scroll area
         self.scroll_area_content = QWidget()
@@ -337,7 +367,8 @@ class ArticlesWidget(QWidget):
             news_card = create_news_card(data[0],
                                          data[1],
                                          data[2],
-                                         data[3])
+                                         data[3],
+                                         data[4])
             self.article_layout.addWidget(news_card)
         self.scroll_area.update()
 
@@ -514,6 +545,7 @@ class subArticlesWidget(QWidget):
             news_card = create_news_card(data[0],
                                          data[1],
                                          data[2],
-                                         data[3])
+                                         data[3],
+                                         data[4])
             self.article_layout.addWidget(news_card)
         self.scroll_area.update()
