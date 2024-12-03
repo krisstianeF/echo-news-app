@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw
 import io
 import base64
-import sqlite3
-
+from concurrent.futures import ThreadPoolExecutor
+import os
 
 def convert_to_binary(filename):
     # Преобразование данных в двоичный формат
@@ -38,35 +38,6 @@ def blob_to_png(blob_data):
 
     return png_data
 
-
-'''def crop_image(input_path, output_path, width, height):
-    # Открываем изображение
-    image = Image.open(input_path)
-
-    # Получаем текущие размеры изображения
-    current_width, current_height = image.size
-
-    # Вычисляем координаты для обрезки
-    left = (current_width - width) / 2
-    top = (current_height - height) / 2
-    right = (current_width + width) / 2
-    bottom = (current_height + height) / 2
-
-    # Обрезка изображения
-    cropped_image = image.crop((left, top, right, bottom))
-
-    # Создаем маску с закругленными углами
-    mask = Image.new('L', (width, height), 0)
-    draw = ImageDraw.Draw(mask)
-    draw.rounded_rectangle((0, 0, width, height), radius, fill=255)
-
-    # Применяем маску к изображению
-    result = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-    result.paste(cropped_image, (0, 0), mask)
-
-    # Сохраняем обрезанное изображение
-    cropped_image.save(output_path)'''
-
 def crop_image(input_path, output_path, width, height, radius):
     # Открываем изображение
     image = Image.open(input_path)
@@ -74,14 +45,22 @@ def crop_image(input_path, output_path, width, height, radius):
     # Получаем текущие размеры изображения
     current_width, current_height = image.size
 
+    # Вычисляем новые размеры, сохраняя пропорции
+    aspect_ratio = min(width / current_width, height / current_height)
+    new_width = int(current_width * aspect_ratio)
+    new_height = int(current_height * aspect_ratio)
+
+    # Изменяем размер изображения, сохраняя пропорции
+    resized_image = image.resize((new_width, new_height), Image.LANCZOS)
+
     # Вычисляем координаты для обрезки
-    left = (current_width - width) / 2
-    top = (current_height - height) / 2
-    right = (current_width + width) / 2
-    bottom = (current_height + height) / 2
+    left = (new_width - width) / 2
+    top = (new_height - height) / 2
+    right = (new_width + width) / 2
+    bottom = (new_height + height) / 2
 
     # Обрезка изображения
-    cropped_image = image.crop((left, top, right, bottom))
+    cropped_image = resized_image.crop((left, top, right, bottom))
 
     # Создаем маску с закругленными углами
     mask = Image.new('L', (width, height), 0)
@@ -93,16 +72,4 @@ def crop_image(input_path, output_path, width, height, radius):
     result.paste(cropped_image, (0, 0), mask)
 
     # Сохраняем измененное изображение
-    result.save(output_path)
-
-sqlite_connection = sqlite3.connect('echo_database.db')
-cursor = sqlite_connection.cursor()
-
-select = f"""SELECT image FROM article WHERE articleID = 1;"""
-cursor.execute(select)
-image = cursor.fetchone()
-blob_image = image[0]
-png_data = blob_to_png(blob_image)
-
-with open('article_image.png', 'wb') as f:
-    f.write(png_data)
+    result.save(output_path, quality=10)
