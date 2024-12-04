@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 import datetime
 import sqlite3
@@ -15,7 +15,7 @@ class Window(QMainWindow):
         super().__init__()
         self.resize(1400, 900)
         self.setMinimumSize(QtCore.QSize(1400, 640))
-        self.setStyleSheet(f"background-color: {Style.blue20};")
+        self.setStyleSheet(f"QMainWindow{{ background-color: {Style.blue20}}};")
         self.setWindowTitle("echo")
 
         self.centralwidget = QtWidgets.QWidget()
@@ -29,6 +29,17 @@ class Window(QMainWindow):
 
         self.main_widget = MainWidget()
         Window.horizontalLayout.addWidget(self.main_widget)
+
+    def setMainWidget(self):
+        self.clear_layout(self.layout)
+        self.main = MainWidget()
+        Window.horizontalLayout.addWidget(self.main)
+
+    def setUserMainWidget(self):
+        self.clear_layout(self.layout)
+        main = MainWidget()
+        MainWidget.createUserMainWidget()
+        Window.horizontalLayout.addWidget(main)
 
 
 class MainWidget(QWidget):
@@ -835,232 +846,559 @@ class RegistrationWidget(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.is_visible = False
+        self.selected_avatar = None
+        self.selected_button = None
+
+        self.stacked_widget = QStackedWidget(self)
+        self.stacked_widget.setFont(Style.font("Muller Light", 14))
+        self.stacked_widget.setMaximumSize(QtCore.QSize(650, 650))
+
+        # Создаем страницы для каждого этапа регистрации
+        self.page1 = self.create_page1()
+        self.page2 = self.create_page2()
+        self.page3 = self.create_page3()
+
+        self.stacked_widget.addWidget(self.page1)
+        self.stacked_widget.addWidget(self.page2)
+        self.stacked_widget.addWidget(self.page3)
+
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+
         self.frame = QFrame(self)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
-        self.frame.setSizePolicy(sizePolicy)
-        self.frame.setMaximumSize(QtCore.QSize(650, 650))
-        self.frame.setFont(Style.font("Muller Light", 20))
         self.frame.setStyleSheet(
             f"QFrame{{ color: {Style.blue100}; background-color: {Style.white}; border-radius: 32px;}}")
-        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
-
+        self.frame.setFont(Style.font("Muller Light", 14))
+        self.frame.setMaximumSize(QtCore.QSize(700, 650))
         self.frameLayout = QVBoxLayout(self.frame)
         self.frameLayout.setContentsMargins(64, 64, 64, 64)
         self.frameLayout.setSpacing(32)
 
-        '''spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.frameLayout.addItem(spacerItem)'''
-
-        self.echoFLayout = QtWidgets.QHBoxLayout()
-        self.echo = QtWidgets.QPushButton()
-        self.echo.setText("echo")
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.echo.sizePolicy().hasHeightForWidth())
-        self.echo.setSizePolicy(sizePolicy)
+        self.echoLayout = QtWidgets.QHBoxLayout()
+        self.echo = QtWidgets.QPushButton("echo", self.frame)
+        self.echo.clicked.connect(self.setMainWidget)
         self.echo.setMinimumSize(QtCore.QSize(164, 56))
+        self.echo.setMaximumSize(QtCore.QSize(164, 56))
         self.echo.setFont(Style.font("Cruinn", 14))
         self.echo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.echo.setStyleSheet(f'''QPushButton{{
-                                color: {Style.white};
-                                background-color: {Style.blue100};
-                                border-radius: 28px;
-                                }}
-                                QPushButton::hover{{
-                                background-color: {Style.blue110};
-                                }}''')
-        self.echoFLayout.addWidget(self.echo)
-        self.frameLayout.addLayout(self.echoFLayout)
-
-
-        self.progressLayout = QHBoxLayout()
-        self.progressLayout.setSpacing(12)
-
-        self.progressBtn1 = QPushButton()
-        self.progressBtn1.setStyleSheet(f'''background-color: {Style.blue100};border-radius: 3px; border: 0px solid;''')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.echo.sizePolicy().hasHeightForWidth())
-        self.progressBtn1.setSizePolicy(sizePolicy)
-        self.progressBtn1.setMinimumHeight(6)
-        self.progressBtn1.setMaximumHeight(6)
-
-        self.progressBtn2 = QPushButton()
-        self.progressBtn2.setStyleSheet(
-            f'''background-color: {Style.white};border-radius: 3px; border: 1px solid {Style.blue40};''')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.echo.sizePolicy().hasHeightForWidth())
-        self.progressBtn2.setSizePolicy(sizePolicy)
-        self.progressBtn2.setMinimumHeight(6)
-        self.progressBtn2.setMaximumHeight(6)
-
-        self.progressBtn3 = QPushButton()
-        self.progressBtn3.setStyleSheet(
-            f'''background-color: {Style.white};border-radius: 3px; border: 1px solid {Style.blue40};''')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.echo.sizePolicy().hasHeightForWidth())
-        self.progressBtn3.setSizePolicy(sizePolicy)
-        self.progressBtn3.setMinimumHeight(6)
-        self.progressBtn3.setMaximumHeight(6)
-
-        self.progressLayout.addWidget(self.progressBtn1)
-        self.progressLayout.addWidget(self.progressBtn2)
-        self.progressLayout.addWidget(self.progressBtn3)
-
-        self.frameLayout.addLayout(self.progressLayout)
-
-        self.nameLayout = QtWidgets.QVBoxLayout()
-        self.nameLayout.setSpacing(8)
-        self.nameLabel = QtWidgets.QLabel('Как тебя зовут?')
-        self.nameLabel.setFont(Style.font("Muller Light", 14))
-        self.nameLayout.addWidget(self.nameLabel)
-
-        self.nameLineEdit = QtWidgets.QLineEdit()
-        self.nameLineEdit.setMinimumSize(QtCore.QSize(0, 50))
-        self.nameLineEdit.setFont(Style.font("Muller Light", 10))
-        self.nameLineEdit.setStyleSheet(Style.lineEditStyle)
-        self.nameLayout.addWidget(self.nameLineEdit)
-
-        self.frameLayout.addLayout(self.nameLayout)
-
-
-        self.usernameLayout = QtWidgets.QVBoxLayout()
-        self.usernameLayout.setSpacing(8)
-        self.usernameLabel = QtWidgets.QLabel('Придумай себе уникальное имя пользователя *')
-        self.usernameLabel.setFont(Style.font("Muller Light", 14))
-        self.usernameLayout.addWidget(self.usernameLabel)
-
-        self.usernameLineEdit = QtWidgets.QLineEdit()
-        self.usernameLineEdit.setMinimumSize(QtCore.QSize(0, 50))
-        self.usernameLineEdit.setFont(Style.font("Muller Light", 10))
-        self.usernameLineEdit.setStyleSheet(Style.lineEditStyle)
-        self.usernameLayout.addWidget(self.usernameLineEdit)
-        self.frameLayout.addLayout(self.usernameLayout)
-
-
-        self.BtnLayout = QHBoxLayout()
-        self.BtnLayout.setSpacing(32)
-
-        self.nextButton = QtWidgets.QPushButton('Продолжить')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.nextButton.sizePolicy().hasHeightForWidth())
-        self.nextButton.setSizePolicy(sizePolicy)
-        self.nextButton.setMinimumSize(QtCore.QSize(164, 56))
-        self.nextButton.setFont(Style.font("Muller", 12))
-        self.nextButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.nextButton.setStyleSheet(f'''QPushButton{{
-                                        color: {Style.white};
-                                        background-color: {Style.blue100};
-                                        border-radius: 28px;
-                                        }}
-                                        QPushButton::hover{{
-                                        background-color: {Style.blue110}
+        self.echo.setStyleSheet(f'''QPushButton{{  
+                                        color: {Style.white};  
+                                        background-color: {Style.blue100};  
+                                        border-radius: 28px;                                }}  
+                                        QPushButton::hover{{  
+                                        background-color: {Style.blue110};  
                                         }}''')
-
-        self.backButton = QtWidgets.QPushButton('Назад')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.backButton.sizePolicy().hasHeightForWidth())
-        self.backButton.setSizePolicy(sizePolicy)
-        self.backButton.setMinimumSize(QtCore.QSize(164, 56))
-        self.backButton.setFont(Style.font("Muller", 12))
-        self.backButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.backButton.setStyleSheet(f'''QPushButton{{
-                                        color: {Style.blue100};
-                                        background-color: {Style.blue40};
-                                        border-radius: 28px;
-                                        }}
-                                        QPushButton::hover{{
-                                        background-color: {Style.blue30}
-                                        }}''')
-
-        self.BtnLayout.addWidget(self.backButton)
-        self.BtnLayout.addWidget(self.nextButton)
-
-        self.errorFlag = False
-
-        self.frameLayout.addLayout(self.BtnLayout)
-
-
-        self.label_under_form = QtWidgets.QLabel('* Имя пользователя может содержать только буквы латинского алфавита, цифры и точки')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.label_under_form.sizePolicy().hasHeightForWidth())
-        self.label_under_form.setSizePolicy(sizePolicy)
-        self.label_under_form.setFont(Style.font("Muller Light", 12))
-        self.label_under_form.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        self.label_under_form.setWordWrap(True)
-        self.frameLayout.addWidget(self.label_under_form)
-
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.frameLayout.addItem(spacerItem)
+        self.echoLayout.addWidget(self.echo)
 
         self.layout.addWidget(self.frame)
+        self.frameLayout.addLayout(self.echoLayout)
+        self.frameLayout.addWidget(self.stacked_widget)
+
         self.setLayout(self.layout)
 
-        self.echo.clicked.connect(self.setMainWidget)
-        self.nextButton.clicked.connect(self.next)
-        self.backButton.clicked.connect(self.back)
 
-        self.is_visible = False
+    def create_page1(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setSpacing(32)
+
+        progressLayout = QHBoxLayout()
+        progressLayout.setSpacing(12)
+
+        progressBtn1 = QPushButton()
+        progressBtn1.setStyleSheet(f'''background-color: {Style.blue100};border-radius: 3px; border: 0px solid;''')
+        progressBtn1.setMinimumHeight(6)
+        progressBtn1.setMaximumHeight(6)
+
+        progressBtn2 = QPushButton()
+        progressBtn2.setStyleSheet(
+            f'''background-color: {Style.white};border-radius: 3px; border: 1px solid {Style.blue40};''')
+        progressBtn2.setMinimumHeight(6)
+        progressBtn2.setMaximumHeight(6)
+
+        progressBtn3 = QPushButton()
+        progressBtn3.setStyleSheet(
+            f'''background-color: {Style.white};border-radius: 3px; border: 1px solid {Style.blue40};''')
+        progressBtn3.setMinimumHeight(6)
+        progressBtn3.setMaximumHeight(6)
+
+        progressLayout.addWidget(progressBtn1)
+        progressLayout.addWidget(progressBtn2)
+        progressLayout.addWidget(progressBtn3)
+
+        layout.addLayout(progressLayout)
+
+        self.nameLabel = QtWidgets.QLabel('Как тебя зовут?')
+        self.nameLabel.setFont(Style.font("Muller Light", 14))
+
+        self.usernameLabel = QtWidgets.QLabel('Придумай себе уникальное имя пользователя *')
+        self.usernameLabel.setFont(Style.font("Muller Light", 14))
+
+        self.name_input = QLineEdit(self)
+        self.name_input.setMinimumSize(QtCore.QSize(0, 50))
+        self.name_input.setFont(Style.font("Muller Light", 10))
+        self.name_input.setStyleSheet(Style.lineEditStyle)
+
+        self.username_input = QLineEdit(self)
+        self.username_input.setMinimumSize(QtCore.QSize(0, 50))
+        self.username_input.setFont(Style.font("Muller Light", 10))
+        self.username_input.setStyleSheet(Style.lineEditStyle)
+
+        self.error_label1 = QLabel('* Имя пользователя должно содержать только латинские символы и цифры', self)
+        self.error_label1.setFont(Style.font("Muller Light", 12))
+        self.error_label1.setStyleSheet(f"color: {Style.blue100};")
+        self.error_label1.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
+        self.error_label1.setWordWrap(True)
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.setSpacing(32)
+
+        self.next_button1 = QPushButton('Продолжить', self)
+        self.next_button1.clicked.connect(self.validate_page1)
+        self.next_button1.setMinimumHeight(56)
+        self.next_button1.setFont(Style.font("Muller", 12))
+        self.next_button1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.next_button1.setStyleSheet(f'''QPushButton{{  
+                                                color: {Style.white};  
+                                                background-color: {Style.blue100};  
+                                                border-radius: 28px;
+                                                }}  
+                                                QPushButton::hover{{  
+                                                background-color: {Style.blue110}  
+                                                }}''')
+
+        self.back_button1 = QPushButton('Назад', self)
+        self.back_button1.clicked.connect(self.back_to_login)
+        self.back_button1.setMinimumSize(QSize(160, 56))
+        self.back_button1.setMaximumSize(QSize(160, 56))
+        self.back_button1.setFont(Style.font("Muller", 12))
+        self.back_button1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.back_button1.setStyleSheet(f'''QPushButton{{  
+                                                color: {Style.blue100};  
+                                                background-color: {Style.blue40};  
+                                                border-radius: 28px;
+                                                }}  
+                                                QPushButton::hover{{  
+                                                background-color: {Style.blue30}  
+                                                }}''')
+
+        nameLayout = QVBoxLayout()
+        nameLayout.setSpacing(8)
+        nameLayout.addWidget(self.nameLabel)
+        nameLayout.addWidget(self.name_input)
+
+        usernameLayout = QVBoxLayout()
+        usernameLayout.setSpacing(8)
+        usernameLayout.addWidget(self.usernameLabel)
+        usernameLayout.addWidget(self.username_input)
+
+        buttonLayout.addWidget(self.back_button1)
+        buttonLayout.addWidget(self.next_button1)
+
+        layout.addLayout(nameLayout)
+        layout.addLayout(usernameLayout)
+
+        layout.addLayout(buttonLayout)
+        layout.addWidget(self.error_label1)
+
+        page.setLayout(layout)
+        return page
+
+    def create_page2(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setSpacing(32)
+
+        progressLayout = QHBoxLayout()
+        progressLayout.setSpacing(12)
+
+        progressBtn1 = QPushButton()
+        progressBtn1.setStyleSheet(f'''background-color: {Style.blue100}; border-radius: 3px; border: 0px solid;''')
+        progressBtn1.setMinimumHeight(6)
+        progressBtn1.setMaximumHeight(6)
+
+        progressBtn2 = QPushButton()
+        progressBtn2.setStyleSheet(
+            f'''background-color: {Style.blue100}; border-radius: 3px; border: 0px solid;''')
+        progressBtn2.setMinimumHeight(6)
+        progressBtn2.setMaximumHeight(6)
+
+        progressBtn3 = QPushButton()
+        progressBtn3.setStyleSheet(
+            f'''background-color: {Style.white}; border-radius: 3px; border: 1px solid {Style.blue40};''')
+        progressBtn3.setMinimumHeight(6)
+        progressBtn3.setMaximumHeight(6)
+
+        progressLayout.addWidget(progressBtn1)
+        progressLayout.addWidget(progressBtn2)
+        progressLayout.addWidget(progressBtn3)
+
+        layout.addLayout(progressLayout)
+
+        self.passwordFrame1 = QFrame(self)
+        self.passwordFrame1.setMaximumSize(1000, 50)
+        self.passwordFrame1.setMinimumSize(0, 50)
+        self.passwordFrame1.setStyleSheet(Style.passwordFrameStyle)
+
+        self.inputLayout1 = QHBoxLayout(self.passwordFrame1)
+        self.inputLayout1.setContentsMargins(0, 5, 0, 5)
+
+        self.password_input = QLineEdit(self)
+        self.password_input.setStyleSheet('''QLineEdit{ 
+            color: #000000; 
+            background-color: #ffffff; 
+            border: 0px solid; 
+            border-radius: 23px;  
+            padding-left: 10px;
+            padding-right: 10px;}''')
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.password_input.setFont(Style.font("Muller Light", 10))
+
+        self.hideButton1 = QPushButton(self.passwordFrame1)
+        self.hideButton1.setMinimumSize(QtCore.QSize(40, 40))
+        self.hideButton1.setMaximumSize(QtCore.QSize(40, 40))
+        self.hideButton1.setStyleSheet('''QPushButton{ 
+        background-color: #ffffff; 
+        border: 0px solid; 
+        border-radius: 20px;  
+        padding-left: 10px;                    
+        padding-right: 10px;}                    
+        QPushButton::hover{                    
+        background-color: #E5F1FF;
+        }''')
+        self.hideButton1.setIcon(QIcon('gui/icons/eyeClosed.png'))
+        self.hideButton1.setIconSize(QSize(24, 24))
+        self.hideButton1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.hideButton1.clicked.connect(self.toggle_visibility1)
+        self.inputLayout1.addWidget(self.password_input)
+        self.inputLayout1.addWidget(self.hideButton1)
+
+        self.passwordFrame2 = QFrame(self)
+        self.passwordFrame2.setMaximumSize(1000, 50)
+        self.passwordFrame2.setMinimumSize(0, 50)
+        self.passwordFrame2.setStyleSheet(Style.passwordFrameStyle)
+
+        self.inputLayout2 = QHBoxLayout(self.passwordFrame2)
+        self.inputLayout2.setContentsMargins(0, 5, 0, 5)
+
+        self.confirm_password_input = QLineEdit(self)
+        self.confirm_password_input.setStyleSheet('''QLineEdit{ 
+            color: #000000; 
+            background-color: #ffffff; 
+            border: 0px solid; 
+            border-radius: 23px;  
+            padding-left: 10px;
+            padding-right: 10px;}''')
+        self.confirm_password_input.setEchoMode(QLineEdit.Password)
+        self.confirm_password_input.setFont(Style.font("Muller Light", 10))
+
+        self.hideButton2 = QPushButton(self.passwordFrame2)
+        self.hideButton2.setMinimumSize(QtCore.QSize(40, 40))
+        self.hideButton2.setMaximumSize(QtCore.QSize(40, 40))
+        self.hideButton2.setStyleSheet('''QPushButton{ 
+        background-color: #ffffff; 
+        border: 0px solid; 
+        border-radius: 20px;  
+        padding-left: 10px;                    
+        padding-right: 10px;}                    
+        QPushButton::hover{                    
+        background-color: #E5F1FF;
+        }''')
+        self.hideButton2.setIcon(QIcon('gui/icons/eyeClosed.png'))
+        self.hideButton2.setIconSize(QSize(24, 24))
+        self.hideButton2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.hideButton2.clicked.connect(self.toggle_visibility2)
+        self.inputLayout2.addWidget(self.confirm_password_input)
+        self.inputLayout2.addWidget(self.hideButton2)
+
+        passwordLayout1 = QVBoxLayout()
+        passwordLayout1.setSpacing(8)
+        passwordLayout2 = QVBoxLayout()
+        passwordLayout2.setSpacing(8)
+
+        self.passwordLabel1 = QtWidgets.QLabel('Придумай пароль *')
+        self.passwordLabel1.setFont(Style.font("Muller Light", 14))
+        self.passwordLabel2 = QtWidgets.QLabel('И продублируй его *')
+        self.passwordLabel2.setFont(Style.font("Muller Light", 14))
+
+        passwordLayout1.addWidget(self.passwordLabel1)
+        passwordLayout1.addWidget(self.passwordFrame1)
+        passwordLayout2.addWidget(self.passwordLabel2)
+        passwordLayout2.addWidget(self.passwordFrame2)
+
+        buttonLayout2 = QHBoxLayout()
+        buttonLayout2.setSpacing(32)
+
+        self.next_button2 = QPushButton('Продолжить', self)
+        self.next_button2.setMinimumHeight(56)
+        self.next_button2.setFont(Style.font("Muller", 12))
+        self.next_button2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.next_button2.setStyleSheet(f'''QPushButton{{  
+                                                        color: {Style.white};  
+                                                        background-color: {Style.blue100};  
+                                                        border-radius: 28px;
+                                                        }}  
+                                                        QPushButton::hover{{  
+                                                        background-color: {Style.blue110}  
+                                                        }}''')
+
+        self.back_button2 = QPushButton('Назад', self)
+        self.back_button2.setMinimumSize(QSize(160, 56))
+        self.back_button2.setMaximumSize(QSize(160, 56))
+        self.back_button2.setFont(Style.font("Muller", 12))
+        self.back_button2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.back_button2.setStyleSheet(f'''QPushButton{{  
+                                                        color: {Style.blue100};  
+                                                        background-color: {Style.blue40};  
+                                                        border-radius: 28px;
+                                                        }}  
+                                                        QPushButton::hover{{  
+                                                        background-color: {Style.blue30}  
+                                                        }}''')
+
+        buttonLayout2.addWidget(self.back_button2)
+        buttonLayout2.addWidget(self.next_button2)
+
+        self.error_label2 = QLabel('* Пароль должен содержать не менее 6 символов', self)
+        self.error_label2.setFont(Style.font("Muller Light", 12))
+        self.error_label2.setStyleSheet(f"color: {Style.blue100};")
+        self.error_label2.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
+        self.error_label2.setWordWrap(True)
+
+        self.next_button2.clicked.connect(self.validate_page2)
+        self.back_button2.clicked.connect(self.prev_page)
+
+        layout.addLayout(passwordLayout1)
+        layout.addLayout(passwordLayout2)
+        layout.addLayout(buttonLayout2)
+        layout.addWidget(self.error_label2)
+
+        page.setLayout(layout)
+        return page
+
+    def create_page3(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+
+        scroll_area = QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet(Style.scrollStyle)
+
+        scroll_content = QWidget()
+        scroll_layout = QGridLayout(scroll_content)
+
+        self.avatar_buttons = []
+
+        for i in range(1, 17):
+            avatar_button = QPushButton()
+            avatar_button.setCheckable(True)
+            pixmap = QPixmap(f'gui/avatars/avatar_{i}.png')
+            icon = QIcon(pixmap)
+            avatar_button.setIcon(icon)
+            avatar_button.setIconSize(pixmap.size())
+            avatar_button.clicked.connect(self.on_avatar_selected)
+            avatar_button.setProperty('avatar_id', i)
+            scroll_layout.addWidget(avatar_button, (i-1) // 4, (i-1) % 4)
+            self.avatar_buttons.append(avatar_button)
+
+        scroll_area.setWidget(scroll_content)
+        layout.addWidget(scroll_area)
+
+
+        buttonLayout3 = QHBoxLayout(self)
+        buttonLayout3.setSpacing(32)
+
+        self.finish_button = QPushButton('Завершить', self)
+        self.finish_button.setMinimumHeight(56)
+        self.finish_button.setFont(Style.font("Muller", 12))
+        self.finish_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.finish_button.setStyleSheet(f'''QPushButton{{  
+                                                        color: {Style.white};  
+                                                        background-color: {Style.blue100};  
+                                                        border-radius: 28px;
+                                                        }}  
+                                                        QPushButton::hover{{  
+                                                        background-color: {Style.blue110}  
+                                                        }}''')
+
+        self.back_button3 = QPushButton('Назад', self)
+        self.back_button3.setMinimumSize(QSize(160, 56))
+        self.back_button3.setMaximumSize(QSize(160, 56))
+        self.back_button3.setFont(Style.font("Muller", 12))
+        self.back_button3.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.back_button3.setStyleSheet(f'''QPushButton{{  
+                                                        color: {Style.blue100};  
+                                                        background-color: {Style.blue40};  
+                                                        border-radius: 28px;
+                                                        }}  
+                                                        QPushButton::hover{{  
+                                                        background-color: {Style.blue30}  
+                                                        }}''')
+
+        buttonLayout3.addWidget(self.back_button3)
+        buttonLayout3.addWidget(self.finish_button)
+
+
+        self.back_button3.clicked.connect(self.prev_page)
+        self.finish_button.clicked.connect(self.finish_registration)
+
+        label = QLabel('Выберите аватар:')
+        label.setFont(Style.font("Muller Light", 16))
+        layout.addWidget(label)
+        layout.addWidget(scroll_area)
+        layout.addLayout(buttonLayout3)
+
+        page.setLayout(layout)
+        return page
+
+    def validate_page1(self):
+        import re
+        name = self.name_input.text()
+        username = self.username_input.text()
+
+        if not name and not username:
+            self.error_label1.setText("* Имя и имя пользователя пользователя не должны быть пустыми.")
+            self.error_label1.setStyleSheet(f'color: {Style.error}')
+            self.usernameLabel.setStyleSheet(f"color: {Style.error}")
+            self.username_input.setStyleSheet(Style.lineEditStyleError)
+            self.nameLabel.setStyleSheet(f"color: {Style.error}")
+            self.name_input.setStyleSheet(Style.lineEditStyleError)
+            return
+
+        elif not name:
+            self.nameLabel.setStyleSheet(f"color: {Style.error}")
+            self.name_input.setStyleSheet(Style.lineEditStyleError)
+            self.error_label1.setText("* Имя не должно быть пустым.")
+            self.error_label1.setStyleSheet(f'color: {Style.error}')
+            return
+
+        elif not username:
+            self.usernameLabel.setStyleSheet(f"color: {Style.error}")
+            self.username_input.setStyleSheet(Style.lineEditStyleError)
+            self.error_label1.setText("* Имя пользователя не должно быть пустым.")
+            self.error_label1.setStyleSheet(f'color: {Style.error}')
+            return
+
+        else:
+            self.name_input.setStyleSheet(Style.lineEditStyle)
+            self.nameLabel.setStyleSheet(f"color: {Style.blue100}")
+            self.username_input.setStyleSheet(Style.lineEditStyle)
+            self.usernameLabel.setStyleSheet(f"color: {Style.blue100}")
+            self.error_label1.setStyleSheet(f'color: {Style.blue100}')
+
+        if not username or not re.match(r'^[a-zA-Z0-9.]+$', username):
+            self.username_input.setStyleSheet(Style.lineEditStyleError)
+            self.usernameLabel.setStyleSheet(f'color: {Style.error}')
+            self.error_label1.setText(
+                "* Имя пользователя должно содержать только буквы латинского алфавита, цифры и точки.")
+            self.error_label1.setStyleSheet(f'color: {Style.error}')
+            return
+        else:
+            self.username_input.setStyleSheet(Style.lineEditStyle)
+            self.usernameLabel.setStyleSheet(f"color: {Style.blue100}")
+            self.error_label1.setStyleSheet(f'color: {Style.blue100}')
+
+        if not self.is_login_unique(username):
+            self.username_input.setStyleSheet(Style.lineEditStyleError)
+            self.error_label1.setText("* Логин уже занят.")
+            self.usernameLabel.setStyleSheet(f'color: {Style.error}')
+            self.error_label1.setStyleSheet(f'color: {Style.error}')
+            return
+        else:
+            self.username_input.setStyleSheet(Style.lineEditStyle)
+            self.usernameLabel.setStyleSheet(f"color: {Style.blue100}")
+            self.error_label1.setStyleSheet(f'color: {Style.blue100}')
+
+        self.error_label1.setText(
+            "* Имя пользователя должно содержать только буквы латинского алфавита, цифры и точки.")
+        self.next_page()
+
+    def validate_page2(self):
+        password = self.password_input.text()
+        confirm_password = self.confirm_password_input.text()
+
+        if len(password) < 6:
+            self.passwordFrame1.setStyleSheet(Style.passwordFrameStyleError)
+            self.passwordLabel1.setStyleSheet(f'color: {Style.error}')
+            self.passwordFrame2.setStyleSheet(Style.passwordFrameStyleError)
+            self.passwordLabel2.setStyleSheet(f'color: {Style.error}')
+            self.error_label2.setStyleSheet(f'color: {Style.error}')
+            self.error_label2.setText("* Пароль должен содержать не менее 6 символов.")
+            return
+        else:
+            self.passwordFrame1.setStyleSheet(Style.passwordFrameStyle)
+            self.passwordLabel1.setStyleSheet(f'color: {Style.blue100}')
+            self.passwordFrame2.setStyleSheet(Style.passwordFrameStyle)
+            self.passwordLabel2.setStyleSheet(f'color: {Style.blue100}')
+            self.error_label2.setStyleSheet(f'color: {Style.blue100}')
+
+        if password != confirm_password:
+            self.passwordFrame1.setStyleSheet(Style.passwordFrameStyleError)
+            self.passwordFrame2.setStyleSheet(Style.passwordFrameStyleError)
+            self.passwordLabel1.setStyleSheet(f'color: {Style.error}')
+            self.passwordLabel2.setStyleSheet(f'color: {Style.error}')
+            self.error_label2.setText("* Пароли не совпадают.")
+            self.error_label2.setStyleSheet(f'color: {Style.error}')
+            return
+        else:
+            self.passwordFrame1.setStyleSheet(Style.passwordFrameStyle)
+            self.passwordFrame2.setStyleSheet(Style.passwordFrameStyle)
+            self.passwordLabel1.setStyleSheet(f'color: {Style.blue100}')
+            self.passwordLabel2.setStyleSheet(f'color: {Style.blue100}')
+            self.error_label2.setStyleSheet(f'color: {Style.blue100}')
+
+        self.error_label2.setText("* Пароль должен содержать не менее 8 символов")
+        self.next_page()
+
+    def is_login_unique(self, login):
+        conn = sqlite3.connect('echo_database.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM user WHERE username = ?", (login,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count == 0
+
+    def next_page(self):
+        current_index = self.stacked_widget.currentIndex()
+        if current_index < self.stacked_widget.count() - 1:
+            self.stacked_widget.setCurrentIndex(current_index + 1)
+
+    def prev_page(self):
+        current_index = self.stacked_widget.currentIndex()
+        if current_index > 0:
+            self.stacked_widget.setCurrentIndex(current_index - 1)
+
+    def finish_registration(self):
+        name = self.name_input.text()
+        username = self.username_input.text()
+        password = self.password_input.text()
+
+        if self.selected_avatar is not None:
+            avatar = self.selected_avatar
+            print(f'Выбранный аватар: {self.selected_avatar}')
+        else:
+            print('Аватар не выбран')
+
+        # Здесь можно добавить логику сохранения данных регистрации
+        print(
+            f"Регистрация завершена:\nИмя пользователя: {name}\nЛогин: {username}\nПароль: {password}\nАватар: {avatar}")
+
+    def back_to_login(self):
+        self.clear_layout(self.layout)
+        login = LoginWidget()
+        self.layout.addWidget(login)
 
     def setMainWidget(self):
         self.clear_layout(self.layout)
         self.main = MainWidget()
         self.layout.addWidget(self.main)
+
     def setUserMainWidget(self):
         self.clear_layout(self.layout)
         main = MainWidget()
         MainWidget.createUserMainWidget()
         self.layout.addWidget(main)
-
-    def back(self):
-        self.clear_layout(self.layout)
-        login = LoginWidget()
-        self.layout.addWidget(login)
-
-    def next(self):
-        name = self.nameLineEdit.text()
-        username = self.usernameLineEdit.text()
-
-        if not self.is_unique(username):
-            self.usernameLabel.setStyleSheet(f'''color: {Style.error}''')
-            self.usernameLineEdit.setStyleSheet(Style.lineEditStyleError)
-            self.label_under_form.setText('* Имя пользователя уже занято.')
-            self.label_under_form.setStyleSheet(f'''color: {Style.error}''')
-
-        if not self.is_valid(username):
-            self.usernameLabel.setStyleSheet(f'''color: {Style.error}''')
-            self.usernameLineEdit.setStyleSheet(Style.lineEditStyleError)
-            self.label_under_form.setText('* Имя пользователя может содержать только буквы латинского алфавита, цифры и точки.')
-            self.label_under_form.setStyleSheet(f'''color: {Style.error}''')
-
-        if not name:
-            self.nameLabel.setStyleSheet(f'''color: {Style.error}''')
-            self.nameLineEdit.setStyleSheet(Style.lineEditStyleError)
-        else:
-            pass
-
-    def is_valid(self, input_text):
-        import re
-        if not input_text or any(char.isspace() for char in input_text):
-            return False
-
-        # Регулярное выражение для проверки имени пользователя
-        pattern = r'^[a-zA-Z0-9.]+$'
-        return re.match(pattern, input_text) is not None
-    def is_unique(self, input_text):
-        # Подключение к базе данных
-        conn = sqlite3.connect('echo_database.db')
-        cursor = conn.cursor()
-
-        # Проверка уникальности имени пользователя
-        cursor.execute("SELECT COUNT(*) FROM user WHERE username = ?", (input_text,))
-        count = cursor.fetchone()[0]
-
-        # Закрытие соединения
-        conn.close()
-
-        return count == 0
 
     def clear_layout(self, layout):
         if layout is not None:
@@ -1068,17 +1406,41 @@ class RegistrationWidget(QWidget):
                         widget = layout.itemAt(i).widget()
                         if widget:
                                 widget.setParent(None)
-
-    def toggle_visibility(self):
+    def toggle_visibility1(self):
         if self.is_visible:
-            self.passwordLineEdit.setEchoMode(QLineEdit.Password)
-            self.hideButton.setIcon(QIcon('gui/icons/eyeClosed.png'))
+            self.password_input.setEchoMode(QLineEdit.Password)
+            self.hideButton1.setIcon(QIcon('gui/icons/eyeClosed.png'))
 
         else:
-            self.passwordLineEdit.setEchoMode(QLineEdit.Normal)
-            self.hideButton.setIcon(QIcon('gui/icons/eyeOpened.png'))
+            self.password_input.setEchoMode(QLineEdit.Normal)
+            self.hideButton1.setIcon(QIcon('gui/icons/eyeOpened.png'))
 
         self.is_visible = not self.is_visible
+
+    def toggle_visibility2(self):
+        if self.is_visible:
+            self.confirm_password_input.setEchoMode(QLineEdit.Password)
+            self.hideButton2.setIcon(QIcon('gui/icons/eyeClosed.png'))
+
+        else:
+            self.confirm_password_input.setEchoMode(QLineEdit.Normal)
+            self.hideButton2.setIcon(QIcon('gui/icons/eyeOpened.png'))
+
+        self.is_visible = not self.is_visible
+
+    def on_avatar_selected(self):
+        button = self.sender()
+        if self.selected_button:
+            self.selected_button.setChecked(False)
+        self.selected_button = button
+        self.selected_avatar = button.property('avatar_id')
+        print(f'Выбран аватар: {self.selected_avatar}')
+
+    def on_finish_clicked(self):
+        if self.selected_avatar is not None:
+            print(f'Выбранный аватар: {self.selected_avatar}')
+        else:
+            print('Аватар не выбран')
 
 
 
@@ -1092,12 +1454,18 @@ class ProfileWidget(QWidget):
         cursor = sqlite_connection.cursor()
 
         select = f"""SELECT name, username FROM user WHERE userID = {self.id};"""
+        select_avatar = f"""SELECT avatarPath FROM avatar, user WHERE user.avatarID = avatar.avatarID AND userID = {self.id}"""
         cursor.execute(select)
+
         user = cursor.fetchone()
         self.name = user[0]
         self.username = '@' + user[1]
 
-        sqlite_connection.close()
+        cursor.execute(select_avatar)
+        avatar = cursor.fetchone()
+        avatar_path = avatar[0]
+
+        cursor.close()
 
 
         ProfileWidget.layout = QVBoxLayout()
@@ -1111,6 +1479,7 @@ class ProfileWidget(QWidget):
         self.scrollArea.setStyleSheet(Style.scrollStyle)
 
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setStyleSheet(f'''QWidget{{ background-color: {Style.blue20};}}''')
         self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1377, 1256))
 
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
@@ -1124,7 +1493,6 @@ class ProfileWidget(QWidget):
                                         "border: 0px solid;\n"
                                         "border-radius: 32px;}\n"
                                         "")
-        self.profileFrame.setObjectName("profileFrame")
 
         self.mainLayout = QtWidgets.QVBoxLayout(self.profileFrame)
         self.mainLayout.setContentsMargins(64, 64, 64, 64)
@@ -1147,9 +1515,8 @@ class ProfileWidget(QWidget):
         self.avatarBtn.setFont(font)
         self.avatarBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.avatarBtn.setStyleSheet(f"background-color: {Style.white}; border: 0px solid;")
-        self.avatarBtn.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("gui\\icons/avatars/avatar_01.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(avatar_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.avatarBtn.setIcon(icon)
         self.avatarBtn.setIconSize(QtCore.QSize(96, 96))
         self.firstLayout.addWidget(self.avatarBtn)

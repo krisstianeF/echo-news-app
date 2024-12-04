@@ -59,11 +59,12 @@ def get_article_card_data(id) -> list:
     cursor.execute(select)
     url = cursor.fetchone()
 
-    select = f"""SELECT image FROM article WHERE articleID = {id};"""
+    '''select = f"""SELECT image FROM article WHERE articleID = {id};"""
     cursor.execute(select)
     image = cursor.fetchone()
     blob_image = image[0]
-    png_data = blob_to_png(blob_image)
+    png_data = blob_to_png(blob_image)'''
+    png_data = 0
 
     data = [title, subtitle, other, url[0], png_data]
     return data
@@ -103,6 +104,7 @@ class ArticlesWidget(QWidget):
 
         # Внутренний виджет для scroll area
         self.scroll_area_content = QWidget()
+        self.scroll_area_content.setStyleSheet(f'''QWidget{{ background-color: {Style.blue20};}}''')
         self.scroll_area_layout = QVBoxLayout()
         self.scroll_area_layout.setContentsMargins(64, 16, 64, 16)
 

@@ -22,9 +22,28 @@ class SELECT:
                     article_id_list.append(x)
 
         self.maxID = max(article_id_list)
-        self.sqlite_connection.close()
+        self.sqlite_connection.commit()
+        self.cursor.close()
 
         return self.maxID
+
+    def user_max_id(self) -> int:
+        select = """SELECT userID FROM user"""
+        self.cursor.execute(select)
+
+        id = self.cursor.fetchall()
+        article_id_list = []
+
+        for row in id:
+            for x in row:
+                    article_id_list.append(x)
+
+        self.maxID = max(article_id_list)
+        self.sqlite_connection.commit()
+        self.cursor.close()
+
+        return self.maxID
+
     def links(self) -> list:
 
         self.cursor.execute("""SELECT article_link FROM article""")

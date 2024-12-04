@@ -24,7 +24,8 @@ class Style():
 
     error = "#F11843"
 
-    scrollStyle = f'''QScrollArea {{ border: none; }}
+    scrollStyle = f'''QScrollArea {{ border: none;
+                                        background-color: {blue20};}}
     
                     /* VERTICAL SCROLLBAR */
                      QScrollBar:vertical {{
@@ -86,12 +87,27 @@ class Style():
         padding-left: 20px;
         padding-right: 20px;}}'''
     lineEditStyleError = f'''
-                            color: #000000; 
-                            background-color: #ffffff; 
+                            color: {black}; 
+                            background-color: {white}; 
                             border: 1px solid {error}; 
                             border-radius: 25px;
                             padding-left: 20px;
                             padding-right: 20px;'''
+
+    passwordFrameStyle = f'''
+        QFrame{{ color: {black};   
+        background-color: {white};   
+        border: 1px solid {blue50};   
+        border-radius: 25px;  
+        padding-left: 10px;
+        padding-right: 10px;}}'''
+    passwordFrameStyleError = f'''
+            QFrame{{ color: {black};   
+            background-color: {white};   
+            border: 1px solid {error};   
+            border-radius: 25px;  
+            padding-left: 10px;
+            padding-right: 10px;}}'''
 
     @classmethod
     def change_to_dark_mode(cls):
