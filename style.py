@@ -8,19 +8,25 @@ def font(family, size):
 
 class Style():
     white = "#ffffff"
-    black = "#000000"
+    black = "#090F15"
 
-    blue110 = "#237DE3"
+    blue110 = "#156FD5"
     blue100 = "#2C88F0"
-    blue70 = "#6BB0FF"
-    blue60 = "#9AC6F9"
-    blue50 = "#B1D5FF"
-    blue40 = "#C7E0FD"
-    blue30 = "#E5F1FF"
-    blue20 = "#F1F8FF"
-    blue10 = "#F9FCFF"
+    blue80 = "#4AAAFE"
+    blue60 = "#7AC3FB"
+    blue50 = "#9CD8FF"
+    blue40 = "#C3EAFF"
+    blue30 = "#D6F2FF"
+    blue20 = "#E5F7FF"
+    blue10 = "#F1FBFF"
 
-    pink100 = "#FF56D0"
+    secondary110 = "#03D2E5"
+    secondary100 = "#11EADC"
+    secondary80 = "#3BF5D0"
+    secondary60 = "#6AFADD"
+    secondary40 = "#A2FFEC"
+    secondary20 = "#C7FFF3"
+    secondary10 = "#E9FFFA"
 
     error = "#F11843"
 

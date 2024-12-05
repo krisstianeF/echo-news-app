@@ -104,7 +104,7 @@ class ArticlesWidget(QWidget):
 
         # Внутренний виджет для scroll area
         self.scroll_area_content = QWidget()
-        self.scroll_area_content.setStyleSheet(f'''QWidget{{ background-color: {Style.blue20};}}''')
+        self.scroll_area_content.setStyleSheet(f'''QWidget{{ background-color: rgba(0, 0, 0, 0);}}''')
         self.scroll_area_layout = QVBoxLayout()
         self.scroll_area_layout.setContentsMargins(64, 16, 64, 16)
 
