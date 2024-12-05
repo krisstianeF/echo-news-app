@@ -14,7 +14,7 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
         self.resize(1400, 900)
-        self.setMinimumSize(QtCore.QSize(1400, 640))
+        self.setMinimumSize(QtCore.QSize(1000, 640))
         self.setStyleSheet(f"QMainWindow{{ background-color: {Style.blue20}}};")
         self.setWindowTitle("echo")
 
@@ -46,6 +46,15 @@ class MainWidget(QWidget):
     profileButton = None
     articleLayout = None
     horizontalLayout = None
+    userID = None
+
+    '''sqlite_connection = sqlite3.connect('echo_database.db')
+    cursor = sqlite_connection.cursor()
+    select = f"""SELECT userID FROM user WHERE username = {current_username}"""
+    cursor.execute(select)
+
+    sqlite_connection.commit()
+    cursor.close()'''
 
     def __init__(self):
         super().__init__()
@@ -554,7 +563,7 @@ class MainWidget(QWidget):
     @classmethod
     def set_profile_widget(cls):
         cls.clear_layout(MainWidget.articleLayout)
-        profile = ProfileWidget(1)
+        profile = ProfileWidget(MainWidget.userID)
         cls.articleLayout.addWidget(profile)
 
     @classmethod
@@ -769,6 +778,17 @@ class LoginWidget(QWidget):
         self.main = MainWidget()
         self.layout.addWidget(self.main)
     def setUserMainWidget(self):
+        username = self.usernameLineEdit.text()
+        sqlite_connection = sqlite3.connect('echo_database.db')
+        cursor = sqlite_connection.cursor()
+        select = """SELECT userID FROM user WHERE username = ?;"""
+        cursor.execute(select, (username, ))
+        id = cursor.fetchone()
+        MainWidget.userID = id[0]
+
+        sqlite_connection.commit()
+        cursor.close()
+
         self.clear_layout(self.layout)
         main = MainWidget()
         MainWidget.createUserMainWidget()
@@ -885,7 +905,7 @@ class RegistrationWidget(QWidget):
         self.echo.setStyleSheet(f'''QPushButton{{  
                                         color: {Style.white};  
                                         background-color: {Style.blue100};  
-                                        border-radius: 28px;                                }}  
+                                        border-radius: 28px;}}  
                                         QPushButton::hover{{  
                                         background-color: {Style.blue110};  
                                         }}''')
@@ -1177,12 +1197,11 @@ class RegistrationWidget(QWidget):
         page.setLayout(layout)
         return page
 
-    def create_page3(self):
+    """def create_page3(self):
         page = QWidget()
         layout = QVBoxLayout()
 
-        scroll_area = QScrollArea(self)
-        scroll_area.setWidgetResizable(True)
+        scroll_area = QScrollArea(page)
         scroll_area.setStyleSheet(Style.scrollStyle)
 
         scroll_content = QWidget()
@@ -1196,7 +1215,7 @@ class RegistrationWidget(QWidget):
             pixmap = QPixmap(f'gui/avatars/avatar_{i}.png')
             icon = QIcon(pixmap)
             avatar_button.setIcon(icon)
-            avatar_button.setIconSize(pixmap.size())
+            avatar_button.setIconSize(QSize(50, 50))
             avatar_button.clicked.connect(self.on_avatar_selected)
             avatar_button.setProperty('avatar_id', i)
             scroll_layout.addWidget(avatar_button, (i-1) // 4, (i-1) % 4)
@@ -1209,7 +1228,7 @@ class RegistrationWidget(QWidget):
         buttonLayout3 = QHBoxLayout(self)
         buttonLayout3.setSpacing(32)
 
-        self.finish_button = QPushButton('Завершить', self)
+        self.finish_button = QPushButton('Завершить')
         self.finish_button.setMinimumHeight(56)
         self.finish_button.setFont(Style.font("Muller", 12))
         self.finish_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -1222,7 +1241,7 @@ class RegistrationWidget(QWidget):
                                                         background-color: {Style.blue110}  
                                                         }}''')
 
-        self.back_button3 = QPushButton('Назад', self)
+        self.back_button3 = QPushButton('Назад')
         self.back_button3.setMinimumSize(QSize(160, 56))
         self.back_button3.setMaximumSize(QSize(160, 56))
         self.back_button3.setFont(Style.font("Muller", 12))
@@ -1247,6 +1266,124 @@ class RegistrationWidget(QWidget):
         label.setFont(Style.font("Muller Light", 16))
         layout.addWidget(label)
         layout.addWidget(scroll_area)
+        layout.addLayout(buttonLayout3)
+
+        page.setLayout(layout)
+        return page"""
+
+    def create_page3(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setSpacing(32)
+
+        progressLayout = QHBoxLayout()
+        progressLayout.setSpacing(12)
+
+        progressBtn1 = QPushButton()
+        progressBtn1.setStyleSheet(f'''background-color: {Style.blue100}; border-radius: 3px; border: 0px solid;''')
+        progressBtn1.setMinimumHeight(6)
+        progressBtn1.setMaximumHeight(6)
+
+        progressBtn2 = QPushButton()
+        progressBtn2.setStyleSheet(
+            f'''background-color: {Style.blue100}; border-radius: 3px; border: 0px solid;''')
+        progressBtn2.setMinimumHeight(6)
+        progressBtn2.setMaximumHeight(6)
+
+        progressBtn3 = QPushButton()
+        progressBtn3.setStyleSheet(
+            f'''background-color: {Style.blue100}; border-radius: 3px; border: 0px solid;''')
+        progressBtn3.setMinimumHeight(6)
+        progressBtn3.setMaximumHeight(6)
+
+        progressLayout.addWidget(progressBtn1)
+        progressLayout.addWidget(progressBtn2)
+        progressLayout.addWidget(progressBtn3)
+
+        layout.addLayout(progressLayout)
+
+
+        scroll_area = QScrollArea(page)
+        scroll_area.setStyleSheet(Style.scrollStyle)
+
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet(
+            f'''QWidget{{background-color: {Style.blue30}; border-radius: 32px; border: 0px solid;}}''')
+        scroll_layout = QGridLayout(scroll_content)
+
+        self.avatar_buttons = []
+
+        for i in range(1, 17):
+            avatar_button = QPushButton()
+            avatar_button.setCheckable(True)
+            avatar_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            avatar_button.setMinimumSize(120, 120)
+            avatar_button.setMaximumSize(120, 120)
+            pixmap = QPixmap(f'gui/avatars/avatar_{i}.png')
+            icon = QIcon(pixmap)
+            avatar_button.setIcon(icon)
+            avatar_button.setIconSize(QSize(110, 110))
+            avatar_button.clicked.connect(self.on_avatar_selected)
+            avatar_button.setProperty('avatar_id', i)
+            avatar_button.setStyleSheet(f'''
+                        QPushButton {{
+                            border: 2px solid transparent;
+                            border-radius: 60px;
+                        }}
+                        QPushButton:pressed {{
+                            border: 3px solid {Style.blue100};
+                        }}
+                        
+                        QPushButton:checked {{
+                            border: 3px solid {Style.blue100};
+                        }}
+                    ''')
+            scroll_layout.addWidget(avatar_button, (i - 1) // 4, (i - 1) % 4)
+            self.avatar_buttons.append(avatar_button)
+
+        scroll_area.setWidget(scroll_content)
+
+        self.label = QLabel('Выберите аватар:')
+        self.label.setFont(Style.font("Muller Light", 16))
+        layout.addWidget(self.label)
+        layout.addWidget(scroll_area)
+
+        buttonLayout3 = QHBoxLayout()
+        buttonLayout3.setSpacing(32)
+
+        self.finish_button = QPushButton('Завершить')
+        self.finish_button.setMinimumHeight(56)
+        self.finish_button.setFont(Style.font("Muller", 12))
+        self.finish_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.finish_button.setStyleSheet(f'''QPushButton{{
+                                                    color: {Style.white};
+                                                    background-color: {Style.blue100};
+                                                    border-radius: 28px;
+                                                    }}
+                                                    QPushButton::hover{{
+                                                    background-color: {Style.blue110}
+                                                    }}''')
+
+        self.back_button3 = QPushButton('Назад')
+        self.back_button3.setMinimumSize(QSize(160, 56))
+        self.back_button3.setMaximumSize(QSize(160, 56))
+        self.back_button3.setFont(Style.font("Muller", 12))
+        self.back_button3.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.back_button3.setStyleSheet(f'''QPushButton{{
+                                                    color: {Style.blue100};
+                                                    background-color: {Style.blue40};
+                                                    border-radius: 28px;
+                                                    }}
+                                                    QPushButton::hover{{
+                                                    background-color: {Style.blue30}
+                                                    }}''')
+
+        buttonLayout3.addWidget(self.back_button3)
+        buttonLayout3.addWidget(self.finish_button)
+
+        self.back_button3.clicked.connect(self.prev_page)
+        self.finish_button.clicked.connect(self.finish_registration)
+
         layout.addLayout(buttonLayout3)
 
         page.setLayout(layout)
@@ -1351,6 +1488,8 @@ class RegistrationWidget(QWidget):
         self.error_label2.setText("* Пароль должен содержать не менее 8 символов")
         self.next_page()
 
+
+
     def is_login_unique(self, login):
         conn = sqlite3.connect('echo_database.db')
         cursor = conn.cursor()
@@ -1370,19 +1509,32 @@ class RegistrationWidget(QWidget):
             self.stacked_widget.setCurrentIndex(current_index - 1)
 
     def finish_registration(self):
+        from database import SELECT
+        if self.selected_avatar is None:
+            self.label.setStyleSheet(f'color: {Style.error}')
+            return
+        else:
+            self.label.setStyleSheet(f'color: {Style.blue100}')
+
+        a = SELECT()
+        max_id = a.user_max_id()
+        self.new_id = max_id + 1
+
         name = self.name_input.text()
         username = self.username_input.text()
         password = self.password_input.text()
+        avatarID = self.selected_avatar
 
-        if self.selected_avatar is not None:
-            avatar = self.selected_avatar
-            print(f'Выбранный аватар: {self.selected_avatar}')
-        else:
-            print('Аватар не выбран')
+        sqlite_connection = sqlite3.connect('echo_database.db')
+        cursor = sqlite_connection.cursor()
 
-        # Здесь можно добавить логику сохранения данных регистрации
-        print(
-            f"Регистрация завершена:\nИмя пользователя: {name}\nЛогин: {username}\nПароль: {password}\nАватар: {avatar}")
+        insert = f"""INSERT INTO user VALUES (?, ?, ?, ?, ?)"""
+        cursor.execute(insert, (self.new_id, name, username, password, avatarID, ))
+
+        sqlite_connection.commit()
+        cursor.close()
+
+        self.setUserMainWidget()
 
     def back_to_login(self):
         self.clear_layout(self.layout)
@@ -1395,6 +1547,7 @@ class RegistrationWidget(QWidget):
         self.layout.addWidget(self.main)
 
     def setUserMainWidget(self):
+        MainWidget.userID = self.new_id
         self.clear_layout(self.layout)
         main = MainWidget()
         MainWidget.createUserMainWidget()

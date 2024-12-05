@@ -25,7 +25,7 @@ class Style():
     error = "#F11843"
 
     scrollStyle = f'''QScrollArea {{ border: none;
-                                        background-color: {blue20};}}
+                                        background-color: rgba(255, 255, 255, 0);}}
     
                     /* VERTICAL SCROLLBAR */
                      QScrollBar:vertical {{
