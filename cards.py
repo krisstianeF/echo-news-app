@@ -4,95 +4,25 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QScrollArea,
                              QSpacerItem, QSizePolicy, QMessageBox)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import QSize
-from datetime import datetime
-import sqlite3
 import webbrowser
 import os
 from blob import blob_to_png, crop_image
 from style import Style
+from dbModel import Model
 
-def font(family, size):
-    font = QFont()
-    font.setFamily(family)
-    font.setPointSize(size)
-    return font
-
-def transform_date(date_str):
-    try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        return date_obj.strftime("%d.%m.%Y")
-    except ValueError as e:
-        print(f"Ошибка преобразования даты: {e}")
-        return None
-
-def open_link(url):
-    if url:
-        webbrowser.open(url)
-
-
-'''Получение данных статьи для карточки по articleID'''
-def get_article_card_data(id) -> list:
-    data = []
-    sqlite_connection = sqlite3.connect('echo_database.db')
-    cursor = sqlite_connection.cursor()
-
-    select = f"""SELECT title, subtitle FROM article WHERE articleID = {id};"""
-    cursor.execute(select)
-    title_subtitle = cursor.fetchone()
-    data.append(title_subtitle)
-
-    other_data_select = f"""SELECT publish.publish_name, category.category_name, article.article_date, article.article_time FROM publish, article, category
-                            WHERE articleID = {id} AND article.publishID = publish.publishID AND article.categoryID = category.categoryID;"""
-
-    cursor.execute(other_data_select)
-    other_data = cursor.fetchone()
-    date =  transform_date(other_data[2])
-
-    other_data_new = other_data[:2] + (date,) + other_data[3:]
-    data.append(other_data_new)
-
-    title = data[0][0]
-    subtitle = data[0][1]
-    other = '    |    '.join(data[1])
-
-    select = f"""SELECT article_link FROM article WHERE articleID = {id};"""
-    cursor.execute(select)
-    url = cursor.fetchone()
-
-    '''select = f"""SELECT image FROM article WHERE articleID = {id};"""
-    cursor.execute(select)
-    image = cursor.fetchone()
-    blob_image = image[0]
-    png_data = blob_to_png(blob_image)'''
-    png_data = 0
-
-    data = [title, subtitle, other, url[0], png_data]
-    return data
-
-'''Формирование списка id из sql запроса request'''
-def get_ids(request) -> list:
-    ids = []
-    sqlite_connection = sqlite3.connect('echo_database.db')
-    cursor = sqlite_connection.cursor()
-
-    cursor.execute(request)
-    id_list = cursor.fetchall()
-    for id in id_list:
-        ids.append(id[0])
-
-    cursor.connection.close()
-
-    return ids
 
 class ArticlesWidget(QWidget):
     favorite_button = None
     read_later_button = None
 
-    def __init__(self, id_request, title_request):
+    def __init__(self, id_request, title_request, id):
         super().__init__()
+
+        self.db = Model()
 
         self.idRequest = id_request
         self.titleRequest = title_request
+        self.id = id
 
         # Основной вертикальный layout
         self.main_layout = QVBoxLayout()
@@ -104,7 +34,7 @@ class ArticlesWidget(QWidget):
 
         # Внутренний виджет для scroll area
         self.scroll_area_content = QWidget()
-        self.scroll_area_content.setStyleSheet(f'''QWidget{{ background-color: {Style.blue20};}}''')
+        self.scroll_area_content.setStyleSheet(f'''QWidget{{ background-color: rgba(0, 0, 0, 0);}}''')
         self.scroll_area_layout = QVBoxLayout()
         self.scroll_area_layout.setContentsMargins(64, 16, 64, 16)
 
@@ -123,17 +53,14 @@ class ArticlesWidget(QWidget):
 
         self.load_more_btn = QPushButton("ЗАГРУЗИТЬ ЕЩЁ")
         self.load_more_btn.setMinimumSize(QtCore.QSize(164, 56))
-        font = QFont()
-        font.setFamily("Muller Light")
-        font.setPointSize(9)
-        self.load_more_btn.setFont(font)
+        self.load_more_btn.setFont(Style.font("Muller Light", 9))
         self.load_more_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.load_more_btn.setStyleSheet('''QPushButton{color: rgb(0, 0, 0);
-                                    background-color: #C7E0FD;
-                                    border-radius: 28px;                     /* <----  40px  */ 
-                                    border: 0px solid #094065;}
-                                    QPushButton::hover{
-                                    background-color: #B1D5FF;}''')
+        self.load_more_btn.setStyleSheet(f'''QPushButton{{color: {Style.black};
+                                    background-color: {Style.blue50};
+                                    border-radius: 28px;
+                                    border: 0px solid;}}
+                                    QPushButton::hover{{
+                                    background-color: {Style.blue40};}}''')
 
         self.load_more_btn.clicked.connect(self.load_more_news)
         self.load_more_layout.addWidget(self.load_more_btn)
@@ -149,7 +76,7 @@ class ArticlesWidget(QWidget):
     def create_news_card(cls, title, subtitle, other_data, url, png_data):
         # Создание фрейма для карточки новости
         card_frame = QFrame()
-        card_frame.setStyleSheet("background-color: white; border-radius: 16px;")
+        card_frame.setStyleSheet(f"background-color: {Style.white}; border-radius: 16px;")
 
         card_layout = QHBoxLayout()
         card_layout.setContentsMargins(16, 16, 16, 16)
@@ -193,9 +120,8 @@ class ArticlesWidget(QWidget):
         other_data_layout = QHBoxLayout()
 
         other_data_label = QLabel(other_data)
-        font = QFont("Muller", 9, QFont.Normal)
-        other_data_label.setFont(font)
-        other_data_label.setStyleSheet("color: #6BB0FF;")
+        other_data_label.setFont(Style.font("Muller", 9))
+        other_data_label.setStyleSheet(f"color: {Style.blue100};")
         other_data_layout.addWidget(other_data_label)
 
         # Добавляем горизонтальный спейсер
@@ -238,10 +164,7 @@ class ArticlesWidget(QWidget):
         sizePolicy.setVerticalStretch(50)
         sizePolicy.setHeightForWidth(title_label.sizePolicy().hasHeightForWidth())
         title_label.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily("Muller Light")
-        font.setPointSize(16)
-        title_label.setFont(font)
+        title_label.setFont(Style.font("Muller Light", 16))
         title_label.setWordWrap(True)
 
         subtitle_label = QLabel(subtitle)
@@ -250,11 +173,8 @@ class ArticlesWidget(QWidget):
         sizePolicy.setVerticalStretch(50)
         sizePolicy.setHeightForWidth(subtitle_label.sizePolicy().hasHeightForWidth())
         subtitle_label.setSizePolicy(sizePolicy)
-        font = QFont()
-        font.setFamily("Muller")
-        font.setPointSize(12)
-        subtitle_label.setFont(font)
-        subtitle_label.setStyleSheet("color: #BFC8D3;")
+        subtitle_label.setFont(Style.font("Muller", 12))
+        subtitle_label.setStyleSheet(f"color: {Style.grey};")
         subtitle_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         subtitle_label.setWordWrap(True)
 
@@ -264,20 +184,17 @@ class ArticlesWidget(QWidget):
         readArticleBtn = QtWidgets.QPushButton("Читать новость")
         readArticleBtn.setMinimumSize(QtCore.QSize(180, 40))
         readArticleBtn.setMaximumSize(QtCore.QSize(180, 40))
-        font = QFont()
-        font.setFamily("Muller Regular")
-        font.setPointSize(11)
-        readArticleBtn.setFont(font)
+        readArticleBtn.setFont(Style.font("Muller", 11))
         readArticleBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        readArticleBtn.setStyleSheet('''QPushButton{
-        color: rgb(255, 255, 255);
-        background-color: #2C88F0;
+        readArticleBtn.setStyleSheet(f'''QPushButton{{
+        color: {Style.white};
+        background-color: {Style.blue100};
         border-radius: 8px;
-        border: 0px solid #094065;
-    }
-    QPushButton::hover{
-        background-color: #237DE3;}''')
-        readArticleBtn.clicked.connect(lambda: open_link(url))
+        border: 0px solid;
+    }}
+    QPushButton::hover{{
+        background-color: {Style.blue110};}}''')
+        readArticleBtn.clicked.connect(lambda: cls.open_link(url))
         wrap.addWidget(readArticleBtn)
         card_layout.addLayout(wrap)
 
@@ -309,9 +226,13 @@ class ArticlesWidget(QWidget):
         global start
         global end
 
-        ids = get_ids(self.idRequest)
+        if self.id != None:
+            ids = self.db.get_category_ids(self.idRequest, self.id)
+        else:
+            ids = self.db.get_ids(self.idRequest)
+
         for i in (ids)[self.start:self.end]:
-            data = get_article_card_data(i)
+            data = self.db.get_article_card_data(i)
             news_card = ArticlesWidget.create_news_card(data[0],
                                          data[1],
                                          data[2],
@@ -321,13 +242,7 @@ class ArticlesWidget(QWidget):
         self.scroll_area.update()
 
     def add_category_label_layout(self):
-        sqlite_connection = sqlite3.connect('echo_database.db')
-        cursor = sqlite_connection.cursor()
-
-        cursor.execute(self.titleRequest)
-
-        title = cursor.fetchone()[0]
-        cursor.connection.close()
+        title = self.db.get_one(self.titleRequest, self.id)
 
         self.categoryLabelLayout = QHBoxLayout()
         self.categoryLabelLayout.setContentsMargins(64, 8, 64, 8)
@@ -337,25 +252,24 @@ class ArticlesWidget(QWidget):
         sizePolicy.setHeightForWidth(self.categoryLabel.sizePolicy().hasHeightForWidth())
         self.categoryLabel.setSizePolicy(sizePolicy)
         self.categoryLabel.setMinimumSize(60, 60)
-        font = QFont()
-        font.setFamily("Muller Light")
-        font.setPointSize(24)
-        self.categoryLabel.setFont(font)
-        self.categoryLabel.setStyleSheet('''QLabel{ color: #2C88F0; border-bottom: 1px solid #E5F1FF;}''')
+        self.categoryLabel.setFont(Style.font("Muller Light", 24))
+        self.categoryLabel.setStyleSheet(f'''QLabel{{ color: {Style.blue100}; border-bottom: 2px solid {Style.blue60};}}''')
 
         self.categoryLabelLayout.addWidget(self.categoryLabel)
         self.main_layout.addLayout(self.categoryLabelLayout)
 
-
     @classmethod
+    def open_link(cls, url):
+        if url:
+            webbrowser.open(url)
+
     def like(cls):
         cls.show_message_box('echo', 'Чтобы добавить статью в список "Избранное" сначала войдите или зарегистрируйтесь.')
 
-    @classmethod
     def read_later(cls):
         cls.show_message_box('echo', 'Чтобы добавить статью в список "Читать позже" сначала войдите или зарегистрируйтесь.')
 
-    @classmethod
+
     def show_message_box(cls, title, message, icon=QMessageBox.Information):
         msg_box = QMessageBox()
         msg_box.setIcon(icon)

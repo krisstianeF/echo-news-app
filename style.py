@@ -11,6 +11,7 @@ def font(family, size):
 class Style():
     white = "#ffffff"
     black = "#090F15"
+    grey = "#BFC8D3"
 
     blue110 = "#156FD5"
     blue100 = "#2C88F0"

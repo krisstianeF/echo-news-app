@@ -31,7 +31,6 @@ class Window(QMainWindow):
         '''-----------------mainWnd------------------'''
 
         self.main_widget = MainWidget()
-        MainWidget.createUserMainWidget()
 
         Window.horizontalLayout.addWidget(self.main_widget)
 
@@ -51,15 +50,7 @@ class MainWidget(QWidget):
     profileButton = None
     articleLayout = None
     horizontalLayout = None
-    userID = 1
-
-    '''sqlite_connection = sqlite3.connect('echo_database.db')
-    cursor = sqlite_connection.cursor()
-    select = f"""SELECT userID FROM user WHERE username = {current_username}"""
-    cursor.execute(select)
-
-    sqlite_connection.commit()
-    cursor.close()'''
+    userID = None
 
     def __init__(self):
         super().__init__()
@@ -97,15 +88,15 @@ class MainWidget(QWidget):
         spacerItem = QtWidgets.QSpacerItem(8, 8, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.menuLayout.addItem(spacerItem)
 
-        self.main_btn_style = '''QPushButton{
-                            color: rgb(255, 255, 255);
-                            background-color: rgb(44, 136, 240);
+        self.main_btn_style = f'''QPushButton{{
+                            color: {Style.white};
+                            background-color: {Style.blue100};
                             border-radius: 28px;   
-                            border: 0px solid #094065;
-                            }
-                            QPushButton:hover {
-                            background-color: #237DE3;
-                            }'''
+                            border: 0px solid;
+                            }}
+                            QPushButton:hover {{
+                            background-color: {Style.blue110};
+                            }}'''
 
         self.mainButton = QtWidgets.QPushButton("Главная")
         self.mainButton.setMinimumSize(QtCore.QSize(164, 56))
@@ -119,14 +110,14 @@ class MainWidget(QWidget):
         MainWidget.profileButton.setMinimumSize(QtCore.QSize(164, 56))
         MainWidget.profileButton.setFont(Style.font("Muller Light", 12))
         MainWidget.profileButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        MainWidget.profileButton.setStyleSheet('''QPushButton{
-        color: rgb(0, 0, 0);
-        background-color: rgb(229, 241, 255);
+        MainWidget.profileButton.setStyleSheet(f'''QPushButton{{
+        color: {Style.black};
+        background-color: {Style.blue40};
         border-radius: 28px;
         border: 0px solid;
-        }
-        QPushButton::hover{
-        background-color: #C7E0FD;}''')
+        }}
+        QPushButton::hover{{
+        background-color: {Style.blue50};}}''')
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("gui\\icons/profile.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWidget.profileButton.setIcon(icon)
@@ -137,22 +128,24 @@ class MainWidget(QWidget):
         spacerItem = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.menuLayout.addItem(spacerItem)
 
-        hot_icon = QtGui.QIcon()
-        hot_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/hot.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.hotButton = self.create_category_btn(1, hot_icon)
-        self.menuLayout.addWidget(self.hotButton)
 
-        recent_icon = QtGui.QIcon()
-        recent_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/recent.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.recentButton = self.create_category_btn(2, recent_icon)
-        self.menuLayout.addWidget(self.recentButton)
+        #hot_icon = QtGui.QIcon()
+        #hot_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/hot.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        #self.hotButton = self.create_category_btn(1, hot_icon)
+        #self.menuLayout.addWidget(self.hotButton)
+
+        #recent_icon = QtGui.QIcon()
+        #recent_icon.addPixmap(QtGui.QPixmap("gui\\icons/category/recent.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        #self.recentButton = self.create_category_btn(2, recent_icon)
+        #self.menuLayout.addWidget(self.recentButton)
+
 
         spacerItem1 = QtWidgets.QSpacerItem(20, 16, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.menuLayout.addItem(spacerItem1)
 
         self.categoryGroup = QtWidgets.QGroupBox(self.menuFrame)
         self.categoryGroup.setFont(Style.font("Muller Light", 10))
-        self.categoryGroup.setStyleSheet('''QGroupBox{ color: #9AC6F9; border: 0px solid;}''')
+        self.categoryGroup.setStyleSheet(f'''QGroupBox{{ color: {Style.blue80}; border: 0px solid;}}''')
         self.categoryLayout = QtWidgets.QVBoxLayout(self.categoryGroup)
         self.categoryLayout.setContentsMargins(0, 32, 0, 32)
         self.categoryLayout.setSpacing(8)
@@ -200,7 +193,7 @@ class MainWidget(QWidget):
 
         self.publishGroup = QtWidgets.QGroupBox(self.menuFrame)
         self.publishGroup.setFont(Style.font("Muller Light", 10))
-        self.publishGroup.setStyleSheet('''QGroupBox{ color: #9AC6F9; border: 0px solid;}''')
+        self.publishGroup.setStyleSheet(f'''QGroupBox{{ color: {Style.blue80}; border: 0px solid;}}''')
         self.publishGroup.setTitle("Издательства")
 
         self.publishLayout = QtWidgets.QVBoxLayout(self.publishGroup)
@@ -242,8 +235,6 @@ class MainWidget(QWidget):
 
         self.topMenuFrame = QtWidgets.QFrame(self.mainFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.topMenuFrame.sizePolicy().hasHeightForWidth())
         self.topMenuFrame.setSizePolicy(sizePolicy)
         self.topMenuFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -254,12 +245,10 @@ class MainWidget(QWidget):
 
         self.serchFrame = QtWidgets.QFrame(self.topMenuFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.serchFrame.sizePolicy().hasHeightForWidth())
 
         self.serchFrame.setSizePolicy(sizePolicy)
-        self.serchFrame.setStyleSheet("background-color: rgb(255, 255, 255); border: 1px solid #C7E0FD; border-radius: 20px;")
+        self.serchFrame.setStyleSheet(f"background-color: {Style.white}; border: 1px solid {Style.blue40}; border-radius: 20px;")
         self.serchFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.serchFrame.setFrameShadow(QtWidgets.QFrame.Raised)
 
@@ -301,25 +290,23 @@ class MainWidget(QWidget):
         self.find_btn.setMinimumSize(QtCore.QSize(120, 40))
         self.find_btn.setFont(Style.font("Muller Regular", 10))
         self.find_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.find_btn.setStyleSheet('''QPushButton{
-        color: rgb(255, 255, 255); 
-        background-color: rgb(44, 136, 240); 
+        self.find_btn.setStyleSheet(f'''QPushButton{{
+        color: {Style.white}; 
+        background-color: {Style.blue100}; 
         border-radius: 20px; 
-        border: 0px solid #094065;}
-        QPushButton::hover{
-        background-color: #237DE3;}''')
+        border: 0px solid;}}
+        QPushButton::hover{{
+        background-color: {Style.blue110};}}''')
         self.topMenuLayout.addWidget(self.find_btn)
 
         self.find_btn.setText("Найти")
 
         self.comboBoxFrame = QtWidgets.QFrame(self.topMenuFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.comboBoxFrame.sizePolicy().hasHeightForWidth())
         self.comboBoxFrame.setSizePolicy(sizePolicy)
         self.comboBoxFrame.setMinimumSize(QtCore.QSize(116, 40))
-        self.comboBoxFrame.setStyleSheet("background-color: rgb(229, 241, 255); border-radius: 20px;")
+        self.comboBoxFrame.setStyleSheet(f"background-color: {Style.blue40}; border-radius: 20px;")
         self.comboBoxFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.comboBoxFrame.setFrameShadow(QtWidgets.QFrame.Raised)
 
@@ -333,33 +320,33 @@ class MainWidget(QWidget):
         self.comboBox.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.comboBox.setAutoFillBackground(False)
         self.comboBox.setStyleSheet("QComboBox {\n"
-"    background-color: #E5F1FF; /* Цвет фона */\n"
-"    color: #000000;          /* Цвет текста */\n"
-"    border: 0px solid #E5F1FF; /* Рамка */\n"
-"    border-radius: 20px;       /* Скругленные углы */\n"
-"    padding: 5px;            /* Отступы */\n"
-"}\n"
-"\n"
-"QComboBox QAbstractItemView {\n"
-"    border: 1px solid #C7E0FD;\n"
-"    border-radius: 10px; /* Скругление выпадающего списка */\n"
-"    selection-background-color: #C7E0FD; /* Цвет выделения */\n"
-"    selection-color: black; /* Цвет текста выделенного элемента */\n"
-"    padding: 5px;            /* Отступы */\n"
-"    spacing: 5px;\n"
-"    outline: none;\n"
-"}\n"
-"\n"
-"QComboBox::drop-down {\n"
-"    subcontrol-origin: padding;\n"
-"    subcontrol-position: top right;\n"
-"    width: 20px;\n"
-"    border-left: 0px solid #cccccc; /* Граница выпадающего списка */\n"
-"}\n"
-"\n"
-"QComboBox::down-arrow {\n"
-"    image: url(gui/icons/arrow down.png); /* Замените на свой путь к картинке */\n"
-"}")
+        f"background-color: {Style.blue40}; /* Цвет фона */\n"
+        f"color: {Style.black};          /* Цвет текста */\n"
+        f"border: 0px solid {Style.blue80}; /* Рамка */\n"
+        "border-radius: 20px;       /* Скругленные углы */\n"
+        "padding: 5px;            /* Отступы */\n"
+        "}\n"
+        "\n"
+        "QComboBox QAbstractItemView {\n"
+        f"border: 1px solid {Style.blue80};\n"
+        "border-radius: 10px; /* Скругление выпадающего списка */\n"
+        f"selection-background-color: {Style.blue50}; /* Цвет выделения */\n"
+        f"selection-color: {Style.black}; /* Цвет текста выделенного элемента */\n"
+        "padding: 5px;            /* Отступы */\n"
+        "spacing: 5px;\n"
+        "outline: none;\n"
+        "}\n"
+        "\n"
+        "QComboBox::drop-down {\n"
+        "subcontrol-origin: padding;\n"
+        "subcontrol-position: top right;\n"
+        "width: 20px;\n"
+        "border-left: 0px solid; /* Граница выпадающего списка */\n"
+        "}\n"
+        "\n"
+        "QComboBox::down-arrow {\n"
+        "image: url(gui/icons/arrow down.png); /* Замените на свой путь к картинке */\n"
+        "}")
         self.comboBox.setInsertPolicy(QtWidgets.QComboBox.InsertAtCurrent)
         self.comboBox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContentsOnFirstShow)
         self.comboBox.setIconSize(QtCore.QSize(40, 40))
@@ -392,19 +379,20 @@ class MainWidget(QWidget):
         self.set_all_cards()
         self.mainButton.clicked.connect(self.set_all_cards)
 
-        self.hotButton.clicked.connect(self.set_hot_cards)
-        self.recentButton.clicked.connect(self.set_recent_cards)
-        self.politicButton.clicked.connect(self.set_politic_cards)
-        self.economyButton.clicked.connect(self.set_economy_cards)
-        self.cultureButton.clicked.connect(self.set_culture_cards)
-        self.sportButton.clicked.connect(self.set_sport_cards)
-        self.scienceButton.clicked.connect(self.set_science_cards)
-        self.healthButton.clicked.connect(self.set_health_cards)
-        self.gamesButton.clicked.connect(self.set_games_cards)
+        #self.hotButton.clicked.connect(self.set_hot_cards)
+        #self.recentButton.clicked.connect(self.set_recent_cards)
 
-        self.riaButton.clicked.connect(self.set_ria_cards)
-        self.aifButton.clicked.connect(self.set_aif_cards)
-        self.tassButton.clicked.connect(self.set_tass_cards)
+        self.politicButton.clicked.connect(lambda: self.set_category_cards(3))
+        self.economyButton.clicked.connect(lambda: self.set_category_cards(4))
+        self.cultureButton.clicked.connect(lambda: self.set_category_cards(5))
+        self.sportButton.clicked.connect(lambda: self.set_category_cards(6))
+        self.scienceButton.clicked.connect(lambda: self.set_category_cards(7))
+        self.healthButton.clicked.connect(lambda: self.set_category_cards(8))
+        self.gamesButton.clicked.connect(lambda: self.set_category_cards(9))
+
+        self.riaButton.clicked.connect(lambda: self.set_publish_cards(1))
+        self.aifButton.clicked.connect(lambda: self.set_publish_cards(2))
+        self.tassButton.clicked.connect(lambda: self.set_publish_cards(3))
 
         MainWidget.profileButton.clicked.connect(self.set_login_layout)
 
@@ -424,7 +412,7 @@ class MainWidget(QWidget):
         self.Button.setFont(Style.font("Muller Light", 10))
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button.setStyleSheet("QPushButton {\n"
-                                      "    background-color: white; /* Белый фон */\n"
+                                      f"    background-color: {Style.white}; /* Белый фон */\n"
                                       "    border-radius: 20px; /* Скругление углов */\n"
                                       "    padding: 8px; /* Внутренние отступы */\n"
                                       "    text-align: left; /* Выравнивание текста слева */\n"
@@ -434,10 +422,8 @@ class MainWidget(QWidget):
                                       "}\n"
                                       "\n"
                                       "QPushButton::hover {\n"
-                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */\n"
-                                      "}\n"
-                                      "QPushButton::pressed {\n"
-                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */}\n")
+                                      f"    background-color: {Style.blue10}; /* Цвет фона при наведении */\n"
+                                      "}\n")
         self.Button.setIcon(icon)
         self.Button.setIconSize(QtCore.QSize(32, 32))
         return self.Button
@@ -455,7 +441,7 @@ class MainWidget(QWidget):
         self.Button.setFont(Style.font("Muller Light", 10))
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button.setStyleSheet("QPushButton {\n"
-                                      "    background-color: white; /* Белый фон */\n"
+                                      f"    background-color: {Style.white}; /* Белый фон */\n"
                                       "    border-radius: 20px; /* Скругление углов */\n"
                                       "    padding: 8px; /* Внутренние отступы */\n"
                                       "    text-align: left; /* Выравнивание текста слева */\n"
@@ -465,102 +451,54 @@ class MainWidget(QWidget):
                                       "}\n"
                                       "\n"
                                       "QPushButton::hover {\n"
-                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */\n"
-                                      "}\n"
-                                      "QPushButton::pressed {\n"
-                                      "    background-color: #F1F8FF; /* Цвет фона при наведении */}\n")
+                                      f"    background-color: {Style.blue10}; /* Цвет фона при наведении */\n"
+                                      "}\n")
         self.Button.setIcon(icon)
         self.Button.setIconSize(QtCore.QSize(32, 32))
         return self.Button
 
-    '''Загрузка всех карточек'''
+
     def set_all_cards(self):
+        '''Загрузка всех карточек'''
         self.clear_layout(MainWidget.articleLayout)
 
         id_request = """SELECT articleID FROM article ORDER BY article_date DESC;"""
         # Создание и добавление виджета с карточками
-        articles_widget = ArticlesWidget(id_request, None)
+        articles_widget = ArticlesWidget(id_request, None, None)
         MainWidget.articleLayout.addWidget(articles_widget)
 
-    '''Функции для кнопок разделов'''
-    def set_hot_cards(self):
+    '''def set_hot_cards(self):
         today = datetime.date.today()
         two_day_ago = today - datetime.timedelta(days=2)
         self.clear_layout(MainWidget.articleLayout)
         id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {two_day_ago} ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 1;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
+        title_request = """SELECT category_name FROM category WHERE categoryID = ?;"""
+        articles_widget = ArticlesWidget(id_request, title_request, 1)
         MainWidget.articleLayout.addWidget(articles_widget)
     def set_recent_cards(self):
         today = datetime.date.today()
         two_day_ago = today - datetime.timedelta(days = 2)
         self.clear_layout(MainWidget.articleLayout)
         id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {two_day_ago} ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 2;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_politic_cards(self):
-        self.clear_layout(MainWidget.articleLayout)
-        id_request = """SELECT articleID FROM article WHERE categoryID = 3 ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 3;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_economy_cards(self):
-        self.clear_layout(MainWidget.articleLayout)
-        id_request = """SELECT articleID FROM article WHERE categoryID = 4 ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 4;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_culture_cards(self):
-        self.clear_layout(MainWidget.articleLayout)
-        id_request = """SELECT articleID FROM article WHERE categoryID = 5 ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 5;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_sport_cards(self):
-        self.clear_layout(MainWidget.articleLayout)
-        id_request = """SELECT articleID FROM article WHERE categoryID = 6 ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 6;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_science_cards(self):
-        self.clear_layout(MainWidget.articleLayout)
-        id_request = """SELECT articleID FROM article WHERE categoryID = 7 ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 7;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_health_cards(self):
-        self.clear_layout(MainWidget.articleLayout)
-        id_request = """SELECT articleID FROM article WHERE categoryID = 8 ORDER BY article_date DESC;"""
-        title_request = """SELECT category_name FROM category WHERE categoryID = 8;"""
-        articles_widget = ArticlesWidget(id_request, title_request)
-        MainWidget.articleLayout.addWidget(articles_widget)
-    def set_games_cards(self):
-            self.clear_layout(MainWidget.articleLayout)
-            id_request = """SELECT articleID FROM article WHERE categoryID = 9 ORDER BY article_date DESC;"""
-            title_request = """SELECT category_name FROM category WHERE categoryID = 9;"""
-            articles_widget = ArticlesWidget(id_request, title_request)
-            MainWidget.articleLayout.addWidget(articles_widget)
+        title_request = """SELECT category_name FROM category WHERE categoryID = ?;"""
+        articles_widget = ArticlesWidget(id_request, title_request, 2)
+        MainWidget.articleLayout.addWidget(articles_widget)'''
 
-    '''Функции для кнопок издательств'''
-    def set_ria_cards(self):
-            self.clear_layout(MainWidget.articleLayout)
-            id_request = """SELECT articleID FROM article WHERE publishID = 1 ORDER BY article_date DESC;"""
-            title_request = """SELECT publish_name FROM publish WHERE publishID = 1;"""
-            articles_widget = ArticlesWidget(id_request, title_request)
-            MainWidget.articleLayout.addWidget(articles_widget)
-    def set_aif_cards(self):
-            self.clear_layout(MainWidget.articleLayout)
-            id_request = """SELECT articleID FROM article WHERE publishID = 2 ORDER BY article_date DESC;"""
-            title_request = """SELECT publish_name FROM publish WHERE publishID = 2;"""
-            articles_widget = ArticlesWidget(id_request, title_request)
-            MainWidget.articleLayout.addWidget(articles_widget)
-    def set_tass_cards(self):
-            self.clear_layout(MainWidget.articleLayout)
-            id_request = """SELECT articleID FROM article WHERE publishID = 3 ORDER BY article_date DESC;"""
-            title_request = """SELECT publish_name FROM publish WHERE publishID = 3;"""
-            articles_widget = ArticlesWidget(id_request, title_request)
-            MainWidget.articleLayout.addWidget(articles_widget)
+    def set_category_cards(self, id):
+        '''Функция для кнопок разделов'''
+        self.clear_layout(MainWidget.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE categoryID = ? ORDER BY article_date DESC;"""
+        title_request = """SELECT category_name FROM category WHERE categoryID = ?;"""
+        articles_widget = ArticlesWidget(id_request, title_request, id)
+        MainWidget.articleLayout.addWidget(articles_widget)
+
+    def set_publish_cards(self, id):
+        self.clear_layout(MainWidget.articleLayout)
+        id_request = """SELECT articleID FROM article WHERE publishID = ? ORDER BY article_date DESC;"""
+        title_request = """SELECT publish_name FROM publish WHERE publishID = ?;"""
+        articles_widget = ArticlesWidget(id_request, title_request, id)
+        MainWidget.articleLayout.addWidget(articles_widget)
+
 
     @classmethod
     def clear_layout(cls, layout):
@@ -671,12 +609,7 @@ class LoginWidget(QWidget):
         self.passwordFrame = QFrame(self.frame)
         self.passwordFrame.setMaximumSize(1000, 50)
         self.passwordFrame.setMinimumSize(0, 50)
-        self.passwordFrame.setStyleSheet(f'''QFrame{{ color: {Style.black}; 
-                                            background-color: {Style.white}; 
-                                            border: 1px solid {Style.blue50}; 
-                                            border-radius: 25px;
-                                            padding-left: 10px;
-                                            padding-right: 10px;}}''')
+        self.passwordFrame.setStyleSheet(Style.set_line_edit_frame_style(25, True))
         self.passwordFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.passwordFrame.setFrameShadow(QtWidgets.QFrame.Raised)
 
@@ -685,14 +618,11 @@ class LoginWidget(QWidget):
 
         self.passwordLineEdit = QtWidgets.QLineEdit(self.passwordFrame)
         self.passwordLineEdit.setMaximumSize(QtCore.QSize(1000, 46))
-        font = QtGui.QFont()
-        font.setFamily("Muller Light")
-        font.setPointSize(10)
-        self.passwordLineEdit.setFont(font)
+        self.passwordLineEdit.setFont(Style.font("Muller Light", 10))
         self.passwordLineEdit.setStyleSheet(
-            '''QLineEdit{ color: #000000; background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 23px;
+            f'''QLineEdit{{ color: {Style.black}; background-color: {Style.white}; border: 0px solid; border-radius: 23px;
             padding-left: 10px;
-            padding-right: 10px;}''')
+            padding-right: 10px;}}''')
         self.passwordLineEdit.setEchoMode(QLineEdit.Password)
         self.passwordLayout2.addWidget(self.passwordLineEdit)
 
@@ -702,11 +632,12 @@ class LoginWidget(QWidget):
         self.hideButton.setSizePolicy(sizePolicy)
         self.hideButton.setMinimumSize(QtCore.QSize(40, 40))
         self.hideButton.setMaximumSize(QtCore.QSize(40, 40))
-        self.hideButton.setStyleSheet('''QPushButton{ background-color: #ffffff; border: 0px solid #B1D5FF; border-radius: 20px;
+        self.hideButton.setStyleSheet(f'''QPushButton{{ background-color: {Style.white}; border: 0px solid; border-radius: 20px;
             padding-left: 10px;
-            padding-right: 10px;}
-            QPushButton::hover{
-            background-color: #E5F1FF;}''')
+            padding-right: 10px;
+            }}
+            QPushButton::hover{{
+            background-color: {Style.blue20};}}''')
         self.hideButton.setIcon(QIcon('gui/icons/eyeClosed.png'))
         self.hideButton.setIconSize(QSize(24, 24))
         self.hideButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -731,7 +662,7 @@ class LoginWidget(QWidget):
                                         color: {Style.white};
                                         background-color: {Style.blue100};
                                         border-radius: 28px;
-                                        border: 0px solid #094065;
+                                        border: 0px solid;
                                         }}
                                         QPushButton::hover{{
                                         background-color: {Style.blue110}
@@ -827,20 +758,8 @@ class LoginWidget(QWidget):
                 self.usernameLabel.setStyleSheet(f'color: {Style.error}')
                 self.passwordLabel.setStyleSheet(f'color: {Style.error}')
 
-                self.usernameLineEdit.setStyleSheet(f'''
-                color: #000000; 
-                background-color: #ffffff; 
-                border: 1px solid {Style.error}; 
-                border-radius: 25px;
-                padding-left: 20px;
-                padding-right: 20px;''')
-                self.passwordFrame.setStyleSheet(f'''
-                color: #000000; 
-                background-color: #ffffff; 
-                border: 1px solid {Style.error}; 
-                border-radius: 25px;
-                padding-left: 10px;
-                padding-right: 10px;''')
+                self.usernameLineEdit.setStyleSheet(Style.set_line_edit_style(25, False))
+                self.passwordFrame.setStyleSheet(Style.set_line_edit_frame_style(25, False))
                 self.errorLabel.setText("* Неправильный логин и/или пароль")
                 self.errorFlag = True
 
@@ -952,10 +871,10 @@ class RegistrationWidget(QWidget):
 
         layout.addLayout(progressLayout)
 
-        self.nameLabel = QtWidgets.QLabel('Как тебя зовут?')
+        self.nameLabel = QtWidgets.QLabel('Как Вас зовут?')
         self.nameLabel.setFont(Style.font("Muller Light", 14))
 
-        self.usernameLabel = QtWidgets.QLabel('Придумай себе уникальное имя пользователя *')
+        self.usernameLabel = QtWidgets.QLabel('Придумайте себе уникальный логин *')
         self.usernameLabel.setFont(Style.font("Muller Light", 14))
 
         self.name_input = QLineEdit(self)
@@ -1068,28 +987,29 @@ class RegistrationWidget(QWidget):
         self.inputLayout1.setContentsMargins(0, 5, 0, 5)
 
         self.password_input = QLineEdit(self)
-        self.password_input.setStyleSheet('''QLineEdit{ 
-            color: #000000; 
-            background-color: #ffffff; 
+        self.password_input.setStyleSheet(f'''QLineEdit{{ 
+            color: {Style.black}; 
+            background-color: {Style.white}; 
             border: 0px solid; 
             border-radius: 23px;  
             padding-left: 10px;
-            padding-right: 10px;}''')
+            padding-right: 10px;}}''')
         self.password_input.setEchoMode(QLineEdit.Password)
         self.password_input.setFont(Style.font("Muller Light", 10))
 
         self.hideButton1 = QPushButton(self.passwordFrame1)
         self.hideButton1.setMinimumSize(QtCore.QSize(40, 40))
         self.hideButton1.setMaximumSize(QtCore.QSize(40, 40))
-        self.hideButton1.setStyleSheet('''QPushButton{ 
-        background-color: #ffffff; 
+        self.hideButton1.setStyleSheet(f'''QPushButton{{ 
+        background-color: {Style.white}; 
         border: 0px solid; 
         border-radius: 20px;  
         padding-left: 10px;                    
-        padding-right: 10px;}                    
-        QPushButton::hover{                    
-        background-color: #E5F1FF;
-        }''')
+        padding-right: 10px;
+        }}                    
+        QPushButton::hover{{                    
+        background-color: {Style.blue20};
+        }}''')
         self.hideButton1.setIcon(QIcon('gui/icons/eyeClosed.png'))
         self.hideButton1.setIconSize(QSize(24, 24))
         self.hideButton1.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -1106,28 +1026,28 @@ class RegistrationWidget(QWidget):
         self.inputLayout2.setContentsMargins(0, 5, 0, 5)
 
         self.confirm_password_input = QLineEdit(self)
-        self.confirm_password_input.setStyleSheet('''QLineEdit{ 
-            color: #000000; 
-            background-color: #ffffff; 
+        self.confirm_password_input.setStyleSheet(f'''QLineEdit{{ 
+            color: {Style.black}; 
+            background-color: {Style.white}; 
             border: 0px solid; 
             border-radius: 23px;  
             padding-left: 10px;
-            padding-right: 10px;}''')
+            padding-right: 10px;}}''')
         self.confirm_password_input.setEchoMode(QLineEdit.Password)
         self.confirm_password_input.setFont(Style.font("Muller Light", 10))
 
         self.hideButton2 = QPushButton(self.passwordFrame2)
         self.hideButton2.setMinimumSize(QtCore.QSize(40, 40))
         self.hideButton2.setMaximumSize(QtCore.QSize(40, 40))
-        self.hideButton2.setStyleSheet('''QPushButton{ 
-        background-color: #ffffff; 
+        self.hideButton2.setStyleSheet(f'''QPushButton{{ 
+        background-color: {Style.white}; 
         border: 0px solid; 
         border-radius: 20px;  
         padding-left: 10px;                    
-        padding-right: 10px;}                    
-        QPushButton::hover{                    
-        background-color: #E5F1FF;
-        }''')
+        padding-right: 10px;}}                    
+        QPushButton::hover{{                    
+        background-color: {Style.blue20};
+        }}''')
         self.hideButton2.setIcon(QIcon('gui/icons/eyeClosed.png'))
         self.hideButton2.setIconSize(QSize(24, 24))
         self.hideButton2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -1140,9 +1060,9 @@ class RegistrationWidget(QWidget):
         passwordLayout2 = QVBoxLayout()
         passwordLayout2.setSpacing(8)
 
-        self.passwordLabel1 = QtWidgets.QLabel('Придумай пароль *')
+        self.passwordLabel1 = QtWidgets.QLabel('Придумайте пароль *')
         self.passwordLabel1.setFont(Style.font("Muller Light", 14))
-        self.passwordLabel2 = QtWidgets.QLabel('И продублируй его *')
+        self.passwordLabel2 = QtWidgets.QLabel('И продублируйте его *')
         self.passwordLabel2.setFont(Style.font("Muller Light", 14))
 
         passwordLayout1.addWidget(self.passwordLabel1)
@@ -1320,7 +1240,7 @@ class RegistrationWidget(QWidget):
         username = self.username_input.text()
 
         if not name and not username:
-            self.error_label1.setText("* Имя и имя пользователя пользователя не должны быть пустыми.")
+            self.error_label1.setText("* Имя и логин не должны быть пустыми.")
             self.error_label1.setStyleSheet(f'color: {Style.error}')
             self.usernameLabel.setStyleSheet(f"color: {Style.error}")
             self.username_input.setStyleSheet(Style.set_line_edit_style(25, False))
@@ -1338,7 +1258,7 @@ class RegistrationWidget(QWidget):
         elif not username:
             self.usernameLabel.setStyleSheet(f"color: {Style.error}")
             self.username_input.setStyleSheet(Style.set_line_edit_style(25, False))
-            self.error_label1.setText("* Имя пользователя не должно быть пустым.")
+            self.error_label1.setText("* Лгин не должен быть пустым.")
             self.error_label1.setStyleSheet(f'color: {Style.error}')
             return
 
@@ -1555,7 +1475,7 @@ class ProfileWidget(QWidget):
         self.profileFrame.setMinimumSize(QtCore.QSize(0, 1256))
         self.profileFrame.setMaximumSize(QtCore.QSize(16777215, 1256))
         self.profileFrame.setStyleSheet("QFrame{\n"
-                                        "background-color: #ffffff;\n"
+                                        f"background-color: {Style.white};\n"
                                         "border: 0px solid;\n"
                                         "border-radius: 32px;}\n"
                                         "")
@@ -1827,10 +1747,6 @@ class ProfileWidget(QWidget):
         self.exitBtn.clicked.connect(ProfileWidget.exit)
         self.deleteAccountBtn.clicked.connect(ProfileWidget.deleteAccount)
 
-        '''self.name_flag = True
-        self.username_flag = True
-        self.password_flag = True'''
-
     def set_likeList(self):
         pass
     def set_readLaterList(self):
@@ -1950,9 +1866,9 @@ class AccordionSection(QWidget):
 
     def toggleContent(self):
         if self.content_widget.isVisible():
-            self.button.setIcon(QIcon('gui/icons/settings.png'))  # Иконка шестеренки
+            self.button.setIcon(QIcon('gui/icons/settings.png'))
         else:
-            self.button.setIcon(QIcon('gui/icons/cross.png'))  # Иконка крестика
+            self.button.setIcon(QIcon('gui/icons/cross.png'))
         self.content_widget.setVisible(not self.content_widget.isVisible())
 
 
