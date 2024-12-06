@@ -1,12 +1,4 @@
 from PyQt5 import QtWidgets
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap, QPainter
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import *
-import time
-from gui import MainWidget, LoginWidget
-from database import INSERT
 from gui import Window
 
 #INSERT()

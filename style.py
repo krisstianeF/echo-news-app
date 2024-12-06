@@ -1,10 +1,12 @@
 from PyQt5 import QtGui
 
+
 def font(family, size):
     font = QtGui.QFont()
     font.setFamily(family)
     font.setPointSize(size)
     return font
+
 
 class Style():
     white = "#ffffff"
@@ -32,7 +34,7 @@ class Style():
 
     scrollStyle = f'''QScrollArea {{ border: none;
                                         background-color: rgba(255, 255, 255, 0);}}
-    
+
                     /* VERTICAL SCROLLBAR */
                      QScrollBar:vertical {{
                         border: none;
@@ -85,35 +87,47 @@ class Style():
                     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
                         background: none;}}'''
 
-    lineEditStyle = f'''QLineEdit{{ 
-        color: {black}; 
-        background-color: {white}; 
-        border: 1px solid {blue50}; 
-        border-radius: 25px;
-        padding-left: 20px;
-        padding-right: 20px;}}'''
-    lineEditStyleError = f'''
-                            color: {black}; 
-                            background-color: {white}; 
-                            border: 1px solid {error}; 
-                            border-radius: 25px;
-                            padding-left: 20px;
-                            padding-right: 20px;'''
+    @classmethod
+    def set_line_edit_style(cls, radius, flag):
+        if flag == True:
+            lineEditStyle = f'''QLineEdit{{ 
+                        color: {Style.black}; 
+                        background-color: {Style.white}; 
+                        border: 1px solid {Style.blue50}; 
+                        border-radius: {radius};
+                        padding-left: 20px;
+                        padding-right: 20px;}}'''
+        else:
+            lineEditStyle = f'''QLineEdit{{ 
+                        color: {Style.black}; 
+                        background-color: {Style.white}; 
+                        border: 1px solid {Style.error}; 
+                        border-radius: {radius};
+                        padding-left: 20px;
+                        padding-right: 20px;}}'''
 
-    passwordFrameStyle = f'''
-        QFrame{{ color: {black};   
-        background-color: {white};   
-        border: 1px solid {blue50};   
-        border-radius: 25px;  
-        padding-left: 10px;
-        padding-right: 10px;}}'''
-    passwordFrameStyleError = f'''
-            QFrame{{ color: {black};   
-            background-color: {white};   
-            border: 1px solid {error};   
-            border-radius: 25px;  
-            padding-left: 10px;
-            padding-right: 10px;}}'''
+        return lineEditStyle
+
+    @classmethod
+    def set_line_edit_frame_style(cls, radius, flag):
+        if flag == True:
+            lineEditStyle = f'''QFrame{{ 
+                            color: {Style.black};   
+                            background-color: {Style.white};   
+                            border: 1px solid {Style.blue50};   
+                            border-radius: {radius};  
+                            padding-left: 10px;
+                            padding-right: 10px;}}'''
+        else:
+            lineEditStyle = f'''QFrame{{ 
+                            color: {Style.black};   
+                            background-color: {Style.white};   
+                            border: 1px solid {Style.error};   
+                            border-radius: {radius};  
+                            padding-left: 10px;
+                            padding-right: 10px;}}'''
+
+        return lineEditStyle
 
     @classmethod
     def change_to_dark_mode(cls):
