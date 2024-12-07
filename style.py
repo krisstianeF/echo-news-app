@@ -39,48 +39,46 @@ class Style():
                     /* VERTICAL SCROLLBAR */
                      QScrollBar:vertical {{
                         border: none;
-                        background: rgb(255, 255, 255);
-                        width: 14px;
+                        background: {white};
+                        width: 12px;
                         margin: 15px 0 15px 0;
                         border-radius: 0px;}}
 
                     /*  HANDLE BAR VERTICAL */
                     QScrollBar::handle:vertical {{	
-                        background-color: rgb(154, 198, 249);
+                        background-color: {blue80};
                         min-height: 30px;
-                        border-radius: 7px;}}
+                        border-radius: 6px;}}
                     QScrollBar::handle:vertical:hover{{	
-                        background-color: rgb(177, 213, 255);}}
+                        background-color: {blue100};}}
                     QScrollBar::handle:vertical:pressed {{	
-                        background-color: rgb(177, 213, 255);}}
+                        background-color: {blue100};}}
 
                     /* BTN TOP - SCROLLBAR */
                     QScrollBar::sub-line:vertical {{
                         border: none;
-                        background-color: rgb(255, 255, 255);
+                        background-color: {white};
                         height: 15px;
-                        border-top-left-radius: 7px;
-                        border-top-right-radius: 7px;
+                        border-radius: 6px;
                         subcontrol-position: top;
                         subcontrol-origin: margin;}}
                     QScrollBar::sub-line:vertical:hover {{	
-                        background-color: rgb(255, 255, 255);}}
+                        background-color: {white};}}
                     QScrollBar::sub-line:vertical:pressed {{	
-                        background-color: rgb(177, 213, 255);}}
+                        background-color: {blue80};}}
 
                     /* BTN BOTTOM - SCROLLBAR */
                     QScrollBar::add-line:vertical {{
                         border: none;
-                        background-color: rgb(255, 255, 255);
+                        background-color: {white};
                         height: 15px;
-                        border-bottom-left-radius: 7px;
-                        border-bottom-right-radius: 7px;
+                        border-radius: 6px;
                         subcontrol-position: bottom;
                         subcontrol-origin: margin;}}
                     QScrollBar::add-line:vertical:hover {{	
-                        background-color: rgb(255, 255, 255);}}
+                        background-color: {white};}}
                     QScrollBar::add-line:vertical:pressed {{	
-                        background-color: rgb(177, 213, 255);}}
+                        background-color: {blue80};}}
 
                     /* RESET ARROW */
                     QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {{
