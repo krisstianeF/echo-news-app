@@ -79,7 +79,7 @@ class ArticlesWidget(QWidget):
         card_frame.setStyleSheet(f"background-color: {Style.white}; border-radius: 16px;")
 
         card_layout = QHBoxLayout()
-        card_layout.setContentsMargins(16, 16, 16, 16)
+        card_layout.setContentsMargins(24, 24, 24, 24)
         card_layout.setSpacing(16)
 
         wrap = QVBoxLayout()
@@ -263,13 +263,15 @@ class ArticlesWidget(QWidget):
         if url:
             webbrowser.open(url)
 
+    @classmethod
     def like(cls):
         cls.show_message_box('echo', 'Чтобы добавить статью в список "Избранное" сначала войдите или зарегистрируйтесь.')
 
+    @classmethod
     def read_later(cls):
         cls.show_message_box('echo', 'Чтобы добавить статью в список "Читать позже" сначала войдите или зарегистрируйтесь.')
 
-
+    @classmethod
     def show_message_box(cls, title, message, icon=QMessageBox.Information):
         msg_box = QMessageBox()
         msg_box.setIcon(icon)

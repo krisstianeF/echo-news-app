@@ -515,4 +515,3 @@ class TASS:
             articles_data.append(article_data)
 
         return articles_data
-
