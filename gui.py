@@ -3,6 +3,7 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 import datetime
+from datetime import datetime, timedelta
 import sqlite3
 from dbModel import Model
 from cards import ArticlesWidget
@@ -251,22 +252,20 @@ class MainWidget(QWidget):
         self.topMenuLayout.setContentsMargins(64, 32, 64, 16)
 
 
-        self.serchFrame = QtWidgets.QFrame(self.topMenuFrame)
+        self.searchFrame = QtWidgets.QFrame(self.topMenuFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHeightForWidth(self.serchFrame.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(self.searchFrame.sizePolicy().hasHeightForWidth())
 
-        self.serchFrame.setSizePolicy(sizePolicy)
-        self.serchFrame.setStyleSheet(f"background-color: {Style.white}; border: 1px solid {Style.blue40}; border-radius: 20px;")
-        self.serchFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.serchFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.searchFrame.setSizePolicy(sizePolicy)
+        self.searchFrame.setStyleSheet(f"background-color: {Style.white}; border: 1px solid {Style.blue40}; border-radius: 20px;")
+        self.searchFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.searchFrame.setFrameShadow(QtWidgets.QFrame.Raised)
 
-        self.searchLayout = QtWidgets.QHBoxLayout(self.serchFrame)
+        self.searchLayout = QtWidgets.QHBoxLayout(self.searchFrame)
         self.searchLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.search_icon = QtWidgets.QPushButton(self.serchFrame)
+        self.search_icon = QtWidgets.QPushButton(self.searchFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.search_icon.sizePolicy().hasHeightForWidth())
         self.search_icon.setSizePolicy(sizePolicy)
         self.search_icon.setMinimumSize(QtCore.QSize(40, 40))
@@ -279,17 +278,17 @@ class MainWidget(QWidget):
         self.search_icon.setIconSize(QtCore.QSize(32, 32))
         self.searchLayout.addWidget(self.search_icon)
 
-        self.lineEdit = QtWidgets.QLineEdit(self.serchFrame)
+        self.search_input = QtWidgets.QLineEdit(self.searchFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
-        self.lineEdit.setSizePolicy(sizePolicy)
-        self.lineEdit.setFont(Style.font("Muller Light", 10))
-        self.lineEdit.setStyleSheet("border: 0px solid;")
-        self.searchLayout.addWidget(self.lineEdit)
+        sizePolicy.setHeightForWidth(self.search_input.sizePolicy().hasHeightForWidth())
+        self.search_input.setSizePolicy(sizePolicy)
+        self.search_input.setFont(Style.font("Muller Light", 10))
+        self.search_input.setStyleSheet("border: 0px solid;")
+        self.searchLayout.addWidget(self.search_input)
 
-        self.topMenuLayout.addWidget(self.serchFrame)
+        self.topMenuLayout.addWidget(self.searchFrame)
 
         self.find_btn = QtWidgets.QPushButton(self.topMenuFrame)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -364,15 +363,17 @@ class MainWidget(QWidget):
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
+        self.comboBox.addItem("")
         self.comboBoxLayout.addWidget(self.comboBox)
         self.topMenuLayout.addWidget(self.comboBoxFrame)
         self.mainLayout.addWidget(self.topMenuFrame)
 
-        self.comboBox.setCurrentText("За день")
-        self.comboBox.setItemText(0, "За день")
-        self.comboBox.setItemText(1, "За неделю")
-        self.comboBox.setItemText(2, "За месяц")
-        self.comboBox.setItemText(3, "За год")
+        self.comboBox.setCurrentText("За период")
+        self.comboBox.setItemText(0, "За период")
+        self.comboBox.setItemText(1, "За день")
+        self.comboBox.setItemText(2, "За неделю")
+        self.comboBox.setItemText(3, "За месяц")
+        self.comboBox.setItemText(4, "За год")
 
 
         self.articleFrame = QtWidgets.QFrame(self.mainFrame)
@@ -402,11 +403,13 @@ class MainWidget(QWidget):
         self.aifButton.clicked.connect(lambda: self.set_publish_cards(2))
         self.tassButton.clicked.connect(lambda: self.set_publish_cards(3))
 
+        self.find_btn.clicked.connect(self.set_search_cards)
+        self.search_input.returnPressed.connect(self.set_search_cards)
+
         MainWidget.profileButton.clicked.connect(self.set_login_layout)
 
-
-    '''Создание кнопок категорий'''
     def create_category_btn(self, id, icon):
+        '''Создание кнопок категорий'''
 
         request = """SELECT category_name FROM category WHERE categoryID = ?"""
         category_name = db.get_one(request, id)
@@ -458,14 +461,14 @@ class MainWidget(QWidget):
         self.Button.setIconSize(QtCore.QSize(32, 32))
         return self.Button
 
-
     def set_all_cards(self):
         '''Загрузка всех карточек'''
         Window.clear_layout(MainWidget.articleLayout)
 
         id_request = """SELECT articleID FROM article ORDER BY article_date DESC;"""
+        id_list = db.get_ids(id_request)
         # Создание и добавление виджета с карточками
-        articles_widget = ArticlesWidget(id_request, None, None)
+        articles_widget = ArticlesWidget(id_list, None)
         MainWidget.articleLayout.addWidget(articles_widget)
 
     '''def set_hot_cards(self):
@@ -490,31 +493,78 @@ class MainWidget(QWidget):
         Window.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE categoryID = ? ORDER BY article_date DESC;"""
         title_request = """SELECT category_name FROM category WHERE categoryID = ?;"""
-        articles_widget = ArticlesWidget(id_request, title_request, id)
+        id_list = db.get_category_ids(id_request, id)
+        title = db.get_one(title_request, id)
+        articles_widget = ArticlesWidget(id_list, title)
         MainWidget.articleLayout.addWidget(articles_widget)
 
     def set_publish_cards(self, id):
         Window.clear_layout(MainWidget.articleLayout)
         id_request = """SELECT articleID FROM article WHERE publishID = ? ORDER BY article_date DESC;"""
         title_request = """SELECT publish_name FROM publish WHERE publishID = ?;"""
-        articles_widget = ArticlesWidget(id_request, title_request, id)
+        id_list = db.get_category_ids(id_request, id)
+        title = db.get_one(title_request, id)
+        articles_widget = ArticlesWidget(id_list, title)
         MainWidget.articleLayout.addWidget(articles_widget)
 
+    def set_search_cards(self):
+        query = self.search_input.text()
+        Window.clear_layout(MainWidget.articleLayout)
+        try:
+            id_list = db.get_search_ids(query)
+            title = "Результаты поиска"
+            articles_widget = ArticlesWidget(id_list, title)
+            MainWidget.articleLayout.addWidget(articles_widget)
+
+        except TypeError:
+            self.set_all_cards()
+
+        #self.set_filter_cards()
+    def set_filter_cards(self):
+        period = self.comboBox.currentText()
+        today = datetime.now().date()
+        title = ''
+
+        if period == "За период":
+            return
+        elif period == "За день":
+            start_date = today
+            title = "Новости за сегодня"
+        elif period == "За неделю":
+            start_date = today - timedelta(days=7)
+            title = "Новости за неделю"
+        elif period == "За месяц":
+            start_date = today - timedelta(days=30)
+            title = "Новости за месяц"
+        elif period == "За год":
+            start_date = today - timedelta(days=365)
+            title = "Новости за год"
+
+        id_request = f"""SELECT articleID, article_date FROM article WHERE article_date >= {start_date.strftime('%Y-%m-%d')} ORDER BY article_date DESC;"""
+
+        Window.clear_layout(MainWidget.articleLayout)
+
+        id_list = db.get_ids(id_request)
+        articles_widget = ArticlesWidget(id_list, title)
+        MainWidget.articleLayout.addWidget(articles_widget)
 
     def set_login_layout(self):
+        """Открытие виджета входа в аккаунт"""
         Window.clear_layout(MainWidget.horizontalLayout)
         self.login = LoginWidget()
         MainWidget.horizontalLayout.addWidget(self.login)
 
-    '''Открытие профиля пользователя'''
+
     @classmethod
     def set_profile_widget(cls):
+        '''Открытие профиля пользователя'''
         Window.clear_layout(MainWidget.articleLayout)
         profile = ProfileWidget()
         cls.articleLayout.addWidget(profile)
 
     @classmethod
     def createUserMainWidget(cls):
+        """Открытие главного виджета залогиненого пользователя"""
         if cls.profileButton:
             cls.profileButton.setText("Профиль")
             cls.profileButton.clicked.disconnect()
@@ -1395,14 +1445,7 @@ class RegistrationWidget(QWidget):
             self.selected_button.setChecked(False)
         self.selected_button = button
         self.selected_avatar = button.property('avatar_id')
-        print(f'Выбран аватар: {self.selected_avatar}')
-
-    def on_finish_clicked(self):
-        if self.selected_avatar is not None:
-            print(f'Выбранный аватар: {self.selected_avatar}')
-        else:
-            print('Аватар не выбран')
-
+        #print(f'Выбран аватар: {self.selected_avatar}')
 
 
 class ProfileWidget(QWidget):

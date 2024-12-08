@@ -412,7 +412,7 @@ class TASS:
         soup = BeautifulSoup(html, 'html.parser')
 
         news_container = soup.select_one("div.Listing_list__GXTvv")
-        news = news_container.find_all("a", 'tass_pkg_link-v5WdK tass_pkg_card_wrapper-r-hZB tass_pkg_card_wrapper--fixed-aaYyN tass_pkg_card_wrapper--extra_large-uKpvC')
+        news = news_container.find_all("a", "tass_pkg_link-v5WdK tass_pkg_card_wrapper-r-hZB tass_pkg_card_wrapper--fixed-aaYyN tass_pkg_card_wrapper--extra_large-uKpvC")
 
         category_urls = []
 

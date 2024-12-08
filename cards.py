@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QScrollArea,
                              QFrame, QLabel, QPushButton, QHBoxLayout,
                              QSpacerItem, QSizePolicy, QMessageBox)
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 import webbrowser
 import os
 from blob import blob_to_png, crop_image
@@ -15,14 +15,13 @@ class ArticlesWidget(QWidget):
     favorite_button = None
     read_later_button = None
 
-    def __init__(self, id_request, title_request, id):
+    def __init__(self, id_list, title):
         super().__init__()
 
         self.db = Model()
 
-        self.idRequest = id_request
-        self.titleRequest = title_request
-        self.id = id
+        self.id_list = id_list
+        self.title = title
 
         # Основной вертикальный layout
         self.main_layout = QVBoxLayout()
@@ -38,8 +37,8 @@ class ArticlesWidget(QWidget):
         self.scroll_area_layout = QVBoxLayout()
         self.scroll_area_layout.setContentsMargins(64, 16, 64, 16)
 
-        if self.titleRequest != None:
-            self.add_category_label_layout()
+        if self.title != None:
+            self.add_label_layout()
 
         self.article_layout = QVBoxLayout()
         self.article_layout.setContentsMargins(0, 0, 0, 0)
@@ -49,21 +48,21 @@ class ArticlesWidget(QWidget):
         self.scroll_area.setWidget(self.scroll_area_content)
 
         self.load_more_layout = QVBoxLayout()
-        self.load_more_layout.setContentsMargins(64, 64, 64, 64)
+        self.load_more_layout.setContentsMargins(16, 64, 16, 64)
 
-        self.load_more_btn = QPushButton("ЗАГРУЗИТЬ ЕЩЁ")
-        self.load_more_btn.setMinimumSize(QtCore.QSize(164, 56))
-        self.load_more_btn.setFont(Style.font("Muller Light", 9))
+        self.load_more_btn = QPushButton("Загрузить ещё")
+        self.load_more_btn.setMinimumSize(QtCore.QSize(164, 50))
+        self.load_more_btn.setFont(Style.font("Muller", 11))
         self.load_more_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.load_more_btn.setStyleSheet(f'''QPushButton{{color: {Style.black};
-                                    background-color: {Style.blue50};
-                                    border-radius: 28px;
+                                    background-color: {Style.blue60};
+                                    border-radius: 25px;
                                     border: 0px solid;}}
                                     QPushButton::hover{{
-                                    background-color: {Style.blue40};}}''')
+                                    background-color: {Style.blue50};}}''')
 
-        self.load_more_btn.clicked.connect(self.load_more_news)
-        self.load_more_layout.addWidget(self.load_more_btn)
+        #self.load_more_btn.clicked.connect(self.load_more_news)
+        #self.load_more_layout.addWidget(self.load_more_btn)
 
         self.load_initial_news()
         self.scroll_area_layout.addLayout(self.load_more_layout)
@@ -203,6 +202,13 @@ class ArticlesWidget(QWidget):
 
         return card_frame
 
+    @classmethod
+    def clear_layout(cls, layout):
+        if layout is not None:
+            for i in reversed(range(layout.count())):
+                widget = layout.itemAt(i).widget()
+                if widget:
+                    widget.setParent(None)
 
     start = 0
     end = 10
@@ -225,29 +231,52 @@ class ArticlesWidget(QWidget):
     def load_news(self):
         global start
         global end
+        #print(self.id_list)
 
-        if self.id != None:
-            ids = self.db.get_category_ids(self.idRequest, self.id)
-        else:
-            ids = self.db.get_ids(self.idRequest)
+        if len(self.id_list) >= 10:
+            for i in (self.id_list)[self.start:self.end]:
+                data = self.db.get_article_card_data(i)
+                news_card = ArticlesWidget.create_news_card(data[0],
+                                             data[1],
+                                             data[2],
+                                             data[3],
+                                             data[4])
+                self.article_layout.addWidget(news_card)
 
-        for i in (ids)[self.start:self.end]:
-            data = self.db.get_article_card_data(i)
-            news_card = ArticlesWidget.create_news_card(data[0],
-                                         data[1],
-                                         data[2],
-                                         data[3],
-                                         data[4])
-            self.article_layout.addWidget(news_card)
-        self.scroll_area.update()
+            self.load_more_layout.addWidget(self.load_more_btn)
+            self.load_more_btn.clicked.connect(self.load_more_news)
+            self.scroll_area.update()
 
-    def add_category_label_layout(self):
-        title = self.db.get_one(self.titleRequest, self.id)
+        elif len(self.id_list) < 10 and len(self.id_list) >= 1:
+            for i in (self.id_list)[self.start:self.end]:
+                data = self.db.get_article_card_data(i)
+                news_card = ArticlesWidget.create_news_card(data[0],
+                                             data[1],
+                                             data[2],
+                                             data[3],
+                                             data[4])
+                self.article_layout.addWidget(news_card)
+
+            self.scroll_area.update()
+
+        elif len(self.id_list) == 0:
+            nothing_find_label = QLabel("Ничего не найдено")
+            nothing_find_label.setFont(Style.font("Muller Light", 14))
+            nothing_find_label.setStyleSheet(f"color: {Style.blue100}")
+            nothing_find_label.setAlignment(Qt.AlignTop)
+            ArticlesWidget.clear_layout(self.article_layout)
+            self.article_layout.addWidget(nothing_find_label)
+            self.scroll_area.update()
+
+
+
+
+    def add_label_layout(self):
 
         self.categoryLabelLayout = QHBoxLayout()
         self.categoryLabelLayout.setContentsMargins(64, 8, 64, 8)
 
-        self.categoryLabel = QLabel(title)
+        self.categoryLabel = QLabel(self.title)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHeightForWidth(self.categoryLabel.sizePolicy().hasHeightForWidth())
         self.categoryLabel.setSizePolicy(sizePolicy)

@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets
 from gui import Window
+from database import INSERT
 
 #INSERT()
 
