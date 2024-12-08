@@ -2,13 +2,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QScrollArea,
                              QFrame, QLabel, QPushButton, QHBoxLayout,
                              QSpacerItem, QSizePolicy, QMessageBox)
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, Qt
 import webbrowser
 import os
 from blob import blob_to_png, crop_image
 from style import Style
-from dbModel import Model
+from database import Database
 
 
 class ArticlesWidget(QWidget):
@@ -18,7 +18,7 @@ class ArticlesWidget(QWidget):
     def __init__(self, id_list, title):
         super().__init__()
 
-        self.db = Model()
+        self.db = Database()
 
         self.id_list = id_list
         self.title = title
@@ -61,19 +61,17 @@ class ArticlesWidget(QWidget):
                                     QPushButton::hover{{
                                     background-color: {Style.blue50};}}''')
 
-        #self.load_more_btn.clicked.connect(self.load_more_news)
-        #self.load_more_layout.addWidget(self.load_more_btn)
-
         self.load_initial_news()
         self.scroll_area_layout.addLayout(self.load_more_layout)
         self.main_layout.addWidget(self.scroll_area)
 
         self.setLayout(self.main_layout)
 
-    ''' Создание интерфейса карточки новости '''
+
     @classmethod
     def create_news_card(cls, title, subtitle, other_data, url, png_data):
-        # Создание фрейма для карточки новости
+        ''' Создание интерфейса карточки новости '''
+
         card_frame = QFrame()
         card_frame.setStyleSheet(f"background-color: {Style.white}; border-radius: 16px;")
 
@@ -267,8 +265,6 @@ class ArticlesWidget(QWidget):
             ArticlesWidget.clear_layout(self.article_layout)
             self.article_layout.addWidget(nothing_find_label)
             self.scroll_area.update()
-
-
 
 
     def add_label_layout(self):

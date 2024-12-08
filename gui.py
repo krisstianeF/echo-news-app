@@ -5,11 +5,11 @@ from PyQt5.QtWidgets import *
 import datetime
 from datetime import datetime, timedelta
 import sqlite3
-from dbModel import Model
+from database import Database
 from cards import ArticlesWidget
 from style import Style
 
-db = Model()
+db = Database()
 
 class Window(QMainWindow):
     horizontalLayout = None
@@ -33,17 +33,6 @@ class Window(QMainWindow):
         self.main_widget = MainWidget()
 
         Window.horizontalLayout.addWidget(self.main_widget)
-
-    def setMainWidget(self):
-        Window.clear_layout(Window.horizontalLayout)
-        self.main = MainWidget()
-        Window.horizontalLayout.addWidget(self.main)
-
-    def setUserMainWidget(self):
-        self.clear_layout(Window.horizontalLayout)
-        main = MainWidget()
-        MainWidget.createUserMainWidget()
-        Window.horizontalLayout.addWidget(main)
 
 
     @classmethod
@@ -520,6 +509,7 @@ class MainWidget(QWidget):
             self.set_all_cards()
 
         #self.set_filter_cards()
+
     def set_filter_cards(self):
         period = self.comboBox.currentText()
         today = datetime.now().date()
