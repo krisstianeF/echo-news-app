@@ -14,6 +14,7 @@ from database import Database
 class ArticlesWidget(QWidget):
     favorite_button = None
     read_later_button = None
+    userFlag = False
 
     def __init__(self, id_list, title):
         super().__init__()
@@ -145,8 +146,12 @@ class ArticlesWidget(QWidget):
         ArticlesWidget.read_later_button.setStyleSheet('''QPushButton:hover {
         icon: url(gui/icons/bookmark2.png);}''')
 
-        ArticlesWidget.favorite_button.clicked.connect(cls.like)
-        ArticlesWidget.read_later_button.clicked.connect(cls.read_later)
+        if not cls.userFlag:
+            ArticlesWidget.favorite_button.clicked.connect(cls.like_false)
+            ArticlesWidget.read_later_button.clicked.connect(cls.read_later_false)
+        else:
+            ArticlesWidget.favorite_button.clicked.connect(cls.like)
+            ArticlesWidget.read_later_button.clicked.connect(cls.read_later)
 
         other_data_layout.addWidget(ArticlesWidget.favorite_button)
         other_data_layout.addWidget(ArticlesWidget.read_later_button)
@@ -289,12 +294,17 @@ class ArticlesWidget(QWidget):
             webbrowser.open(url)
 
     @classmethod
-    def like(cls):
+    def like_false(cls):
         cls.show_message_box('echo', 'Чтобы добавить статью в список "Избранное" сначала войдите или зарегистрируйтесь.')
+    @classmethod
+    def read_later_false(cls):
+        cls.show_message_box('echo', 'Чтобы добавить статью в список "Читать позже" сначала войдите или зарегистрируйтесь.')
 
+    def like(cls):
+        pass
     @classmethod
     def read_later(cls):
-        cls.show_message_box('echo', 'Чтобы добавить статью в список "Читать позже" сначала войдите или зарегистрируйтесь.')
+        pass
 
     @classmethod
     def show_message_box(cls, title, message, icon=QMessageBox.Information):

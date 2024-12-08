@@ -43,6 +43,22 @@ class Window(QMainWindow):
                         if widget:
                                 widget.setParent(None)
 
+    @classmethod
+    def setMainWidget(cls):
+        Window.clear_layout(Window.horizontalLayout)
+        ArticlesWidget.userFlag = False
+        mainWnd = MainWidget()
+        Window.horizontalLayout.addWidget(mainWnd)
+
+    @classmethod
+    def setUserMainWidget(cls, user_id):
+        MainWidget.userID = user_id
+        Window.clear_layout(Window.horizontalLayout)
+        ArticlesWidget.userFlag = True
+        main = MainWidget()
+        MainWidget.createUserMainWidget()
+        Window.horizontalLayout.addWidget(main)
+
 
 class MainWidget(QWidget):
     profileButton = None
@@ -562,6 +578,7 @@ class MainWidget(QWidget):
 
 
 
+
 class LoginWidget(QWidget):
 
     logo = None
@@ -748,34 +765,21 @@ class LoginWidget(QWidget):
         self.setLayout(self.layout)
 
 
-        #self.echo.clicked.connect(self.setMainWidget)
-        LoginWidget.logo.clicked.connect(self.setMainWidget)
+        LoginWidget.logo.clicked.connect(Window.setMainWidget)
         self.hideButton.clicked.connect(self.toggle_visibility)
         self.enterButton.clicked.connect(self.enter)
         self.registrationBtn.clicked.connect(self.startRegistration)
 
         self.is_visible = False
 
-    def setMainWidget(self):
-        Window.clear_layout(self.layout)
-        self.main = MainWidget()
-        self.layout.addWidget(self.main)
-    def setUserMainWidget(self):
-        username = self.usernameLineEdit.text()
-        request = """SELECT userID FROM user WHERE username = ?;"""
-        MainWidget.userID = db.get_one(request, username)
-
-        Window.clear_layout(self.layout)
-        main = MainWidget()
-        MainWidget.createUserMainWidget()
-        self.layout.addWidget(main)
-
     def enter(self):
         username = self.usernameLineEdit.text()
         password = self.passwordLineEdit.text()
 
         if self.check_credentials(username, password):
-            self.setUserMainWidget()
+            request = """SELECT userID FROM user WHERE username = ?;"""
+            id = db.get_one(request, username)
+            Window.setUserMainWidget(id)
         else:
             if not self.errorFlag:
                 self.usernameLabel.setText('Имя пользователя *')
@@ -1388,24 +1392,12 @@ class RegistrationWidget(QWidget):
 
         db.insert_user_data(self.new_id, name, username, password, avatarID)
 
-        self.setUserMainWidget()
+        Window.setUserMainWidget(self.new_id)
 
     def back_to_login(self):
         Window.clear_layout(self.layout)
         login = LoginWidget()
         self.layout.addWidget(login)
-
-    def setMainWidget(self):
-        Window.clear_layout(self.layout)
-        self.main = MainWidget()
-        self.layout.addWidget(self.main)
-
-    def setUserMainWidget(self):
-        MainWidget.userID = self.new_id
-        Window.clear_layout(self.layout)
-        main = MainWidget()
-        MainWidget.createUserMainWidget()
-        self.layout.addWidget(main)
 
     def toggle_visibility1(self):
         if self.is_visible:
@@ -1444,8 +1436,6 @@ class ProfileWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-        #self.id = MainWidget.userID
-
         self.name = db.get_user_data(MainWidget.userID)[0]
         self.username = '@' + db.get_user_data(MainWidget.userID)[1]
         avatar_path = db.get_avatar_path(MainWidget.userID)
@@ -1470,8 +1460,6 @@ class ProfileWidget(QWidget):
 
         self.profileFrame = QtWidgets.QFrame(self.scrollAreaWidgetContents)
         self.profileFrame.adjustSize()
-        #self.profileFrame.setMinimumSize(QtCore.QSize(0, 1200))
-        #self.profileFrame.setMaximumSize(QtCore.QSize(16777215, 1600))
         self.profileFrame.setStyleSheet("QFrame{\n"
                                         f"background-color: {Style.white};\n"
                                         "border: 0px solid;\n"
@@ -1633,8 +1621,6 @@ class ProfileWidget(QWidget):
         self.public_name_section = NameAccordionSection('Имя', self.name, self.public_name_widget)
 
         self.userDataLayout.addWidget(self.public_name_section)
-
-
 
 
         # Section 2: Username
@@ -1802,6 +1788,7 @@ class ProfileWidget(QWidget):
 
         #Обновление имени в базе
         db.update_name(MainWidget.userID, new_name)
+
         # Обновление имени в интерфейсе
         self.name1.setText(new_name)
         self.public_name_section.data_label.setText(new_name)
@@ -1846,6 +1833,7 @@ class ProfileWidget(QWidget):
     @classmethod
     def exit(cls):
         Window.clear_layout(Window.horizontalLayout)
+        ArticlesWidget.userFlag = False
         mainWnd = MainWidget()
         Window.horizontalLayout.addWidget(mainWnd)
 

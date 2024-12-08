@@ -213,8 +213,14 @@ class Database:
         self.db_connection.commit()
 
 
-    """----------------------------------------------------------------"""
+    """Interaction----------------------------------------------------------------"""
 
+    def create_interaction(self):
+        cursor = self.db_connection.cursor()
+
+
+        self.db_connection.commit()
+        pass
 
 
 class SELECT:
