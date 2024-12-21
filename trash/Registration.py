@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 import datetime
 import sqlite3
-from cards import ArticlesWidget
+from articles import ArticlesWidget
 from style import Style
 
 class Window(QMainWindow):

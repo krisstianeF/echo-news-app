@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from blob import convert_to_binary
 import os
 from datetime import datetime
+from style import Style
 
 class Database:
     """Взаимодействия интерфейса с базой данных"""
@@ -77,17 +78,17 @@ class Database:
     """Article -------------------------------------------------------------------"""
 
     def get_ids(self, request) -> list:
-        ids = []
+        ids_list = []
 
         cursor = self.db_connection.cursor()
         cursor.execute(request)
-        id_list = cursor.fetchall()
-        for id in id_list:
-            ids.append(id[0])
+        ids = cursor.fetchall()
+        for id in ids:
+            ids_list.append(id[0])
 
         self.db_connection.commit()
 
-        return ids
+        return ids_list
 
     def get_category_ids(self, request, id) -> list:
         '''Формирование списка id из sql запроса request'''
@@ -112,6 +113,26 @@ class Database:
         cursor = self.db_connection.cursor()
         cursor.execute(
             "SELECT articleID FROM article WHERE LOWER(title) LIKE ? OR LOWER(subtitle) LIKE ?", (f'%{query}%', f'%{query}%'))
+        news_ids = cursor.fetchall()
+        for id in news_ids:
+            ids.append(id[0])
+
+        self.db_connection.commit()
+
+        return ids
+
+    def get_search_ids_wth_filter(self, start_date, end_date, query):
+        ids = []
+
+        if not query:
+            return
+        # Поиск новостей в базе данных
+        cursor = self.db_connection.cursor()
+        cursor.execute(
+            """SELECT articleID, article_date FROM article 
+            WHERE article_date <= ? AND article_date >= ? 
+            AND (title LIKE ? OR subtitle LIKE ?) 
+            ORDER BY article_date DESC;""", (start_date, end_date, f'%{query}%', f'%{query}%'))
         news_ids = cursor.fetchall()
         for id in news_ids:
             ids.append(id[0])
@@ -166,6 +187,66 @@ class Database:
 
         return data
 
+    def insert_interaction(self, user_id, article_id, type):
+
+        cursor = self.db_connection.cursor()
+        ids = self.get_ids("""SELECT interactionID FROM interaction""")
+        last_id = ids[-1]
+
+        cursor.execute('''SELECT userID, articleID FROM interaction''')
+        user_article = cursor.fetchall()
+
+        a = (user_id, article_id)
+        if a not in user_article:
+            insert = """INSERT INTO interaction VALUES (?, ?, ?, ?);"""
+            cursor.execute(insert, (last_id+1, user_id, article_id, type))
+            self.show_message_box('echo',
+                                 'Статья успешно добавлена')
+        else:
+            self.show_message_box('echo',
+                                  'Статья уже добавлена')
+
+        self.db_connection.commit()
+
+    @classmethod
+    def show_message_box(self, title, message):
+        from PyQt5.QtWidgets import QMessageBox
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setWindowTitle(title)
+
+        msg_box.setStyleSheet(f'''
+                        QMessageBox {{
+                            background-color: {Style.white};
+                            font-family: Muller Light;
+                            font-size: 14px;
+                        }}''')
+        msg_box.setStandardButtons(QMessageBox.Yes)
+
+        # Изменение стиля и текста кнопок
+        yes_button = msg_box.button(QMessageBox.Yes)
+        yes_button.setStyleSheet(f'''QPushButton {{
+                            background-color: {Style.blue40};
+                            color: {Style.black};
+                            border: none;
+                            padding-left: 32px;
+                            padding-right: 32px;
+                            padding-top: 8px;
+                            padding-bottom: 8px;
+                            border-radius: 4px;
+                            font-size: 14px;
+                        }}
+                        QPushButton:hover {{
+                            background-color: {Style.blue50};
+                        }}''')
+        yes_button.setText('ОК')
+
+        msg_box.setText(message)
+        msg_box.exec_()
+
+
+
+
 
     """User ---------------------------------------------------------------------"""
 
@@ -212,6 +293,11 @@ class Database:
         cursor.execute(insert, (id, name, username, password, avatarID,))
         self.db_connection.commit()
 
+    def delete_user_data(self, id):
+        cursor = self.db_connection.cursor()
+        cursor.execute(f"DELETE FROM user WHERE userID = ?", (id, ))
+        self.db_connection.commit()
+
 
     """Interaction----------------------------------------------------------------"""
 
@@ -241,7 +327,6 @@ class SELECT:
 
         self.maxID = max(article_id_list)
         self.sqlite_connection.commit()
-        self.cursor.close()
 
         return self.maxID
 
@@ -258,7 +343,7 @@ class SELECT:
                 self.article_urls.append(x)
 
         #print('Начальная длинна списка ссылок: ', len(self.article_urls))
-        self.sqlite_connection.close()
+        self.sqlite_connection.commit()
 
         return self.article_urls
 
@@ -329,8 +414,8 @@ class RIA:
                            (5, 'https://ria.ru/culture/'),
                            (7, 'https://ria.ru/science/')]
 
-    '''Получение ссылок на новости РИА по категориям'''
     def get_urls(self, category_url) -> list:
+        '''Получение ссылок на новости РИА по категориям'''
         urls = self.db.links()
 
         responce = requests.get(category_url)

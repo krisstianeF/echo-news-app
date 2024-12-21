@@ -16,7 +16,7 @@ class ArticlesWidget(QWidget):
     read_later_button = None
     userFlag = False
 
-    def __init__(self, id_list, title):
+    def __init__(self, id_list, title, user_id):
         super().__init__()
 
         self.db = Database()
@@ -62,15 +62,19 @@ class ArticlesWidget(QWidget):
                                     QPushButton::hover{{
                                     background-color: {Style.blue50};}}''')
 
-        self.load_initial_news()
+        self.load_initial_news(user_id)
         self.scroll_area_layout.addLayout(self.load_more_layout)
+
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.scroll_area_layout.addItem(spacerItem)
+
         self.main_layout.addWidget(self.scroll_area)
 
         self.setLayout(self.main_layout)
 
 
     @classmethod
-    def create_news_card(cls, title, subtitle, other_data, url, png_data):
+    def create_news_card(cls, title, subtitle, other_data, url, png_data, user_id, art_id):
         ''' Создание интерфейса карточки новости '''
 
         card_frame = QFrame()
@@ -150,8 +154,8 @@ class ArticlesWidget(QWidget):
             ArticlesWidget.favorite_button.clicked.connect(cls.like_false)
             ArticlesWidget.read_later_button.clicked.connect(cls.read_later_false)
         else:
-            ArticlesWidget.favorite_button.clicked.connect(cls.like)
-            ArticlesWidget.read_later_button.clicked.connect(cls.read_later)
+            ArticlesWidget.favorite_button.clicked.connect(lambda: cls.like(user_id, art_id))
+            ArticlesWidget.read_later_button.clicked.connect(lambda: cls.read_later(user_id, art_id))
 
         other_data_layout.addWidget(ArticlesWidget.favorite_button)
         other_data_layout.addWidget(ArticlesWidget.read_later_button)
@@ -216,22 +220,22 @@ class ArticlesWidget(QWidget):
     start = 0
     end = 10
 
-    def load_initial_news(self):
+    def load_initial_news(self, user_id):
         global start
         global end
-        self.load_news()  # Загружаем 5 новостей изначально
+        self.load_news(user_id)  # Загружаем 5 новостей изначально
         self.start += 10
         self.end += 10
 
-    def load_more_news(self):
+    def load_more_news(self, user_id):
         global start
         global end
 
-        self.load_news()  # Загружаем ещё 5 новостей
+        self.load_news(user_id)  # Загружаем ещё 5 новостей
         self.start += 10
         self.end += 10
 
-    def load_news(self):
+    def load_news(self, user_id):
         global start
         global end
         #print(self.id_list)
@@ -243,21 +247,22 @@ class ArticlesWidget(QWidget):
                                              data[1],
                                              data[2],
                                              data[3],
-                                             data[4])
+                                             data[4],
+                                             user_id, i)
                 self.article_layout.addWidget(news_card)
 
             self.load_more_layout.addWidget(self.load_more_btn)
-            self.load_more_btn.clicked.connect(self.load_more_news)
+            self.load_more_btn.clicked.connect(lambda: self.load_more_news(user_id))
             self.scroll_area.update()
 
         elif len(self.id_list) < 10 and len(self.id_list) >= 1:
-            for i in (self.id_list)[self.start:self.end]:
-                data = self.db.get_article_card_data(i)
+            for id in (self.id_list)[self.start:self.end]:
+                data = self.db.get_article_card_data(id)
                 news_card = ArticlesWidget.create_news_card(data[0],
                                              data[1],
                                              data[2],
                                              data[3],
-                                             data[4])
+                                             data[4], user_id, id)
                 self.article_layout.addWidget(news_card)
 
             self.scroll_area.update()
@@ -300,16 +305,49 @@ class ArticlesWidget(QWidget):
     def read_later_false(cls):
         cls.show_message_box('echo', 'Чтобы добавить статью в список "Читать позже" сначала войдите или зарегистрируйтесь.')
 
-    def like(cls):
-        pass
     @classmethod
-    def read_later(cls):
-        pass
+    def like(cls, user_id, article_id):
+        db = Database()
+        db.insert_interaction(user_id, article_id, 'l')
+
+
+    @classmethod
+    def read_later(cls, user_id, article_id):
+        db = Database()
+        db.insert_interaction(user_id, article_id, 'r')
 
     @classmethod
     def show_message_box(cls, title, message, icon=QMessageBox.Information):
         msg_box = QMessageBox()
         msg_box.setIcon(icon)
         msg_box.setWindowTitle(title)
+
+        msg_box.setStyleSheet(f'''
+                QMessageBox {{
+                    background-color: {Style.white};
+                    font-family: Muller Light;
+                    font-size: 14px;
+                }}''')
+        msg_box.setStandardButtons(QMessageBox.Yes)
+
+        # Изменение стиля и текста кнопок
+        yes_button = msg_box.button(QMessageBox.Yes)
+        yes_button.setStyleSheet(f'''QPushButton {{
+                    background-color: {Style.blue40};
+                    color: {Style.black};
+                    border: none;
+                    padding-left: 32px;
+                    padding-right: 32px;
+                    padding-top: 8px;
+                    padding-bottom: 8px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }}
+                QPushButton:hover {{
+                    background-color: {Style.blue50};
+                }}''')
+        yes_button.setText('ОК')
+
+
         msg_box.setText(message)
         msg_box.exec_()

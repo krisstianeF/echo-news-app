@@ -6,7 +6,7 @@ import datetime
 from datetime import datetime, timedelta
 import sqlite3
 from database import Database
-from cards import ArticlesWidget
+from articles import ArticlesWidget
 from style import Style
 
 db = Database()
@@ -357,7 +357,7 @@ class MainWidget(QWidget):
         "}\n"
         "\n"
         "QComboBox::down-arrow {\n"
-        "image: url(gui/icons/arrow down.png); /* Замените на свой путь к картинке */\n"
+        "image: url(gui/icons/arrow down.png);\n"
         "}")
         self.comboBox.setInsertPolicy(QtWidgets.QComboBox.InsertAtCurrent)
         self.comboBox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContentsOnFirstShow)
@@ -373,8 +373,8 @@ class MainWidget(QWidget):
         self.topMenuLayout.addWidget(self.comboBoxFrame)
         self.mainLayout.addWidget(self.topMenuFrame)
 
-        self.comboBox.setCurrentText("За период")
-        self.comboBox.setItemText(0, "За период")
+        self.comboBox.setCurrentText("За всё время")
+        self.comboBox.setItemText(0, "За всё время")
         self.comboBox.setItemText(1, "За день")
         self.comboBox.setItemText(2, "За неделю")
         self.comboBox.setItemText(3, "За месяц")
@@ -424,19 +424,16 @@ class MainWidget(QWidget):
         self.Button.setMaximumSize(QtCore.QSize(210, 40))
         self.Button.setFont(Style.font("Muller Light", 10))
         self.Button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.Button.setStyleSheet("QPushButton {\n"
-                                      f"    background-color: {Style.white}; /* Белый фон */\n"
-                                      "    border-radius: 20px; /* Скругление углов */\n"
-                                      "    padding: 8px; /* Внутренние отступы */\n"
-                                      "    text-align: left; /* Выравнивание текста слева */\n"
-                                      "}\n"
-                                      "QPushButton::icon {\n"
-                                      "    padding-right: 8px; /* Отступ между иконкой и текстом */\n"
-                                      "}\n"
-                                      "\n"
-                                      "QPushButton::hover {\n"
-                                      f"    background-color: {Style.blue10}; /* Цвет фона при наведении */\n"
-                                      "}\n")
+        self.Button.setStyleSheet(f"""QPushButton {{
+                                      background-color: {Style.white}; /* Белый фон */
+                                      border-radius: 20px; /* Скругление углов */
+                                      padding: 8px; /* Внутренние отступы */
+                                      text-align: left; /* Выравнивание текста слева */}}
+                                      "QPushButton::icon {{
+                                      padding-right: 8px; /* Отступ между иконкой и текстом */}}
+                                      QPushButton::hover {{
+                                      background-color: {Style.blue10}; /* Цвет фона при наведении */
+                                      }}""")
         self.Button.setIcon(icon)
         self.Button.setIconSize(QtCore.QSize(32, 32))
         return self.Button
@@ -473,7 +470,7 @@ class MainWidget(QWidget):
         id_request = """SELECT articleID FROM article ORDER BY article_date DESC;"""
         id_list = db.get_ids(id_request)
         # Создание и добавление виджета с карточками
-        articles_widget = ArticlesWidget(id_list, None)
+        articles_widget = ArticlesWidget(id_list, None, MainWidget.userID)
         MainWidget.articleLayout.addWidget(articles_widget)
 
     '''def set_hot_cards(self):
@@ -500,7 +497,7 @@ class MainWidget(QWidget):
         title_request = """SELECT category_name FROM category WHERE categoryID = ?;"""
         id_list = db.get_category_ids(id_request, id)
         title = db.get_one(title_request, id)
-        articles_widget = ArticlesWidget(id_list, title)
+        articles_widget = ArticlesWidget(id_list, title, MainWidget.userID)
         MainWidget.articleLayout.addWidget(articles_widget)
 
     def set_publish_cards(self, id):
@@ -509,22 +506,39 @@ class MainWidget(QWidget):
         title_request = """SELECT publish_name FROM publish WHERE publishID = ?;"""
         id_list = db.get_category_ids(id_request, id)
         title = db.get_one(title_request, id)
-        articles_widget = ArticlesWidget(id_list, title)
+        articles_widget = ArticlesWidget(id_list, title, MainWidget.userID)
         MainWidget.articleLayout.addWidget(articles_widget)
 
     def set_search_cards(self):
         query = self.search_input.text()
         Window.clear_layout(MainWidget.articleLayout)
+        title = "Результаты поиска"
+        period = self.comboBox.currentText()
+        today = datetime.now().date()
+        start_date = today
+        id_list = []
+
         try:
-            id_list = db.get_search_ids(query)
-            title = "Результаты поиска"
-            articles_widget = ArticlesWidget(id_list, title)
+            if period == "За всё время":
+                id_list = db.get_search_ids(query)
+            elif period == "За день":
+                id_list = db.get_search_ids_wth_filter(start_date.strftime('%Y-%m-%d'), start_date.strftime('%Y-%m-%d'), query)
+            elif period == "За неделю":
+                end_date = today - timedelta(days=7)
+                id_list = db.get_search_ids_wth_filter(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), query)
+            elif period == "За месяц":
+                end_date = today - timedelta(days=30)
+                id_list = db.get_search_ids_wth_filter(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), query)
+            elif period == "За год":
+                end_date = today - timedelta(days=365)
+                id_list = db.get_search_ids_wth_filter(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), query)
+
+            articles_widget = ArticlesWidget(id_list, title, MainWidget.userID)
             MainWidget.articleLayout.addWidget(articles_widget)
 
         except TypeError:
             self.set_all_cards()
 
-        #self.set_filter_cards()
 
     def set_filter_cards(self):
         period = self.comboBox.currentText()
@@ -551,7 +565,7 @@ class MainWidget(QWidget):
         Window.clear_layout(MainWidget.articleLayout)
 
         id_list = db.get_ids(id_request)
-        articles_widget = ArticlesWidget(id_list, title)
+        articles_widget = ArticlesWidget(id_list, title, MainWidget.userID)
         MainWidget.articleLayout.addWidget(articles_widget)
 
     def set_login_layout(self):
@@ -575,8 +589,6 @@ class MainWidget(QWidget):
             cls.profileButton.setText("Профиль")
             cls.profileButton.clicked.disconnect()
             cls.profileButton.clicked.connect(cls.set_profile_widget)
-
-
 
 
 class LoginWidget(QWidget):
@@ -631,7 +643,7 @@ class LoginWidget(QWidget):
         self.usernameLayout = QtWidgets.QVBoxLayout()
         self.usernameLayout.setSpacing(8)
         self.usernameLabel = QtWidgets.QLabel(self.frame)
-        self.usernameLabel.setText('Имя пользователя')
+        self.usernameLabel.setText('Логин')
         font = QtGui.QFont()
         font.setFamily("Muller Light")
         font.setPointSize(14)
@@ -752,8 +764,9 @@ class LoginWidget(QWidget):
         self.registrationBtn.setStyleSheet(f'''QPushButton{{color: {Style.blue100};
                                            background-color: {Style.white};
                                            border: 0px solid;
-                                           text-decoration: underline;}}
-                                        QPushButton::hover{{ color: {Style.white}''')
+                                           text-decoration: underline;
+                                           }}
+                                           QPushButton::hover{{background-color: {Style.blue100};''')
         self.registrationBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.textUnderLayout.addWidget(self.registrationBtn)
         self.entranceLayout.addLayout(self.textUnderLayout)
@@ -1432,7 +1445,7 @@ class RegistrationWidget(QWidget):
 
 class ProfileWidget(QWidget):
     layout = None
-
+    msg_box = None
     def __init__(self):
         super().__init__()
 
@@ -1521,7 +1534,7 @@ class ProfileWidget(QWidget):
 
         self.likeListBtn = QtWidgets.QPushButton('Избранное')
         self.likeListBtn.setMinimumSize(QtCore.QSize(0, 96))
-        self.likeListBtn.setMaximumSize(QtCore.QSize(1000, 96))
+        self.likeListBtn.setMaximumSize(QtCore.QSize(16666, 96))
         self.likeListBtn.setFont(Style.font("Muller", 12))
         self.likeListBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.likeListBtn.setStyleSheet(f'''QPushButton{{
@@ -1545,7 +1558,7 @@ class ProfileWidget(QWidget):
 
         self.readLaterListBtn = QtWidgets.QPushButton('Читать позже')
         self.readLaterListBtn.setMinimumSize(QtCore.QSize(0, 96))
-        self.readLaterListBtn.setMaximumSize(QtCore.QSize(1000, 96))
+        self.readLaterListBtn.setMaximumSize(QtCore.QSize(16666, 96))
         self.readLaterListBtn.setFont(Style.font("Muller", 12))
         self.readLaterListBtn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.readLaterListBtn.setStyleSheet(f'''QPushButton{{
@@ -1767,10 +1780,68 @@ class ProfileWidget(QWidget):
         self.exitBtn.clicked.connect(ProfileWidget.exit)
         self.deleteAccountBtn.clicked.connect(ProfileWidget.deleteAccount)
 
+
+        # Диалоговое окно
+        ProfileWidget.msg_box = QMessageBox()
+        ProfileWidget.msg_box.setIcon(QMessageBox.Question)
+        ProfileWidget.msg_box.setStyleSheet(f'''
+        QMessageBox {{
+            background-color: {Style.white};
+            font-family: Muller Light;
+            font-size: 14px;
+        }}''')
+        ProfileWidget.msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        ProfileWidget.msg_box.setDefaultButton(QMessageBox.No)
+
+        # Изменение стиля и текста кнопок
+        yes_button = ProfileWidget.msg_box.button(QMessageBox.Yes)
+        yes_button.setStyleSheet(f'''QPushButton {{
+            background-color: {Style.blue40};
+            color: {Style.black};
+            border: none;
+            padding-left: 32px;
+            padding-right: 32px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }}
+        QPushButton:hover {{
+            background-color: {Style.blue50};
+        }}''')
+        yes_button.setText("Да")
+        no_button = ProfileWidget.msg_box.button(QMessageBox.No)
+        no_button.setStyleSheet(f'''QPushButton {{
+            background-color: {Style.blue100};
+            color: {Style.white};
+            border: none;
+            padding-left: 32px;
+            padding-right: 32px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }}
+        QPushButton:hover {{
+            background-color: {Style.blue110};
+        }}''')
+        no_button.setText("Нет")
+
     def set_likeList(self):
-        pass
+        Window.clear_layout(ProfileWidget.layout)
+        select = f"""SELECT articleID FROM interaction WHERE userID = {MainWidget.userID} AND type = 'l';"""
+        id_list = db.get_ids(select)
+
+        widget = ArticlesWidget(id_list, 'Избранное', MainWidget.userID)
+        ProfileWidget.layout.addWidget(widget)
+
     def set_readLaterList(self):
-        pass
+        Window.clear_layout(ProfileWidget.layout)
+        select = f"""SELECT articleID FROM interaction WHERE userID = {MainWidget.userID} AND type = 'r';"""
+        id_list = db.get_ids(select)
+
+        widget = ArticlesWidget(id_list, 'Читать позже', MainWidget.userID)
+        ProfileWidget.layout.addWidget(widget)
 
     def toggleChangePassword(self):
         self.change_password_widget.setVisible(not self.change_password_widget.isVisible())
@@ -1832,14 +1903,28 @@ class ProfileWidget(QWidget):
 
     @classmethod
     def exit(cls):
-        Window.clear_layout(Window.horizontalLayout)
-        ArticlesWidget.userFlag = False
-        mainWnd = MainWidget()
-        Window.horizontalLayout.addWidget(mainWnd)
+        ProfileWidget.msg_box.setWindowTitle("Подтверждение выхода")
+        ProfileWidget.msg_box.setText(f"Вы уверены, что хотите выйти из аккаунта?")
+
+        reply = ProfileWidget.msg_box.exec_()
+
+        if reply == QMessageBox.Yes:
+            Window.setMainWidget()
+        else:
+            return
 
     @classmethod
     def deleteAccount(cls):
-        pass
+        ProfileWidget.msg_box.setWindowTitle("Подтверждение удаления")
+        ProfileWidget.msg_box.setText(f"Вы уверены, что хотите удалить аккаунт?")
+
+        reply = ProfileWidget.msg_box.exec_()
+
+        if reply == QMessageBox.Yes:
+            db.delete_user_data(MainWidget.userID)
+            Window.setMainWidget()
+        else:
+            return
 
 class NameAccordionSection(QWidget):
     data_label = None
@@ -1922,7 +2007,6 @@ class NameAccordionSection(QWidget):
         else:
             self.button.setIcon(QIcon('gui/icons/cross.png'))
         self.content_widget.setVisible(not self.content_widget.isVisible())
-
 class UsernameAccordionSection(QWidget):
     data_label = None
     def __init__(self, title, data, content_widget, parent=None):

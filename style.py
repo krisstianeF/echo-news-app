@@ -1,13 +1,6 @@
 from PyQt5 import QtGui
 
 
-def font(family, size):
-    font = QtGui.QFont()
-    font.setFamily(family)
-    font.setPointSize(size)
-    return font
-
-
 class Style():
     white = "#ffffff"
     black = "#090F15"
