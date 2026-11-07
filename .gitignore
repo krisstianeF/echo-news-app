@@ -1,0 +1,32 @@
+# Виртуальное окружение
+.venv/
+venv/
+env/
+
+# Python кэш
+__pycache__/
+*.py[cod]
+*$py.class
+
+# База данных (НЕ заливаем локальную БД)
+*.db
+*.sqlite3
+*.sqbpro
+data/echo_database.db
+
+# Логи
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# Прочее
+.cache/
+trash/
+Кейс/
