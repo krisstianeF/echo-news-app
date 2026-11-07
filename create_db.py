@@ -62,7 +62,6 @@ def create_and_fill_database():
     print("Шаг 2: Заполнение таблиц данными...")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ PUBLISH (Издательства) ---
-    # Данные со скриншота
     publishes = [
         (1, 'РИА Новости', 'publish/ria.jpg', 'https://ria.ru/'),
         (2, 'Аргументы и факты', 'publish/aif.jpg', 'https://aif.ru/'),
@@ -71,21 +70,15 @@ def create_and_fill_database():
     
     for p_id, p_name, p_logo_path, p_link in publishes:
         try:
-            # Проверяем, есть ли файл, чтобы не было ошибки
-            if os.path.exists(p_logo_path):
-                logo_blob = convert_to_binary(p_logo_path)
-            else:
-                logo_blob = None # Если картинки нет, оставляем пусто
-                
+            logo_blob = convert_to_binary(p_logo_path) if os.path.exists(p_logo_path) else None
             cursor.execute("INSERT OR IGNORE INTO publish VALUES (?, ?, ?, ?)", (p_id, p_name, logo_blob, p_link))
             print(f" - Добавлено издательство: {p_name}")
         except Exception as e:
             print(f" ! Ошибка при добавлении издательства {p_name}: {e}")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ CATEGORY (Категории) ---
-    # Данные со скриншота
     categories = [
-        (1, 'Популярное', 'categories/hot.jpg'),   # Взял hot.jpg как заглушку, поменяйте если есть другая
+        (1, 'Популярное', 'categories/hot.jpg'),
         (2, 'Свежее', 'categories/recent.jpg'),
         (3, 'Политика', 'categories/hot.jpg'),
         (4, 'Экономика', 'categories/coin.jpg'),
@@ -93,27 +86,31 @@ def create_and_fill_database():
         (6, 'Спорт', 'categories/gamepad.jpg'),
         (7, 'Наука', 'categories/science.jpg'),
         (8, 'Здоровье', 'categories/health.jpg'),
-        (9, 'Игры', 'categories/gamepad.jpg')      # Взял gamepad.jpg как заглушку
+        (9, 'Игры', 'categories/gamepad.jpg')
     ]
 
     for c_id, c_name, c_icon_path in categories:
         try:
-            if os.path.exists(c_icon_path):
-                icon_blob = convert_to_binary(c_icon_path)
-            else:
-                icon_blob = None
-                
+            icon_blob = convert_to_binary(c_icon_path) if os.path.exists(c_icon_path) else None
             cursor.execute("INSERT OR IGNORE INTO category VALUES (?, ?, ?)", (c_id, c_name, icon_blob))
             print(f" - Добавлена категория: {c_name}")
         except Exception as e:
             print(f" ! Ошибка при добавлении категории {c_name}: {e}")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ AVATAR (Аватарки) ---
-    # Данные со скриншота (от 1 до 16)
     for i in range(1, 17):
         avatar_path = f'gui/avatars/avatar_{i}.png'
         cursor.execute("INSERT OR IGNORE INTO avatar VALUES (?, ?)", (i, avatar_path))
     print(" - Добавлены аватарки (с 1 по 16)")
+
+    # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ USER (Тестовый пользователь) ---
+    # Добавляем пользователя kris с паролем 111111 и аватаркой 1
+    try:
+        cursor.execute("""INSERT OR IGNORE INTO user (userID, name, username, user_password, avatarID) 
+                          VALUES (?, ?, ?, ?, ?)""", (1, 'kris', 'kris', '111111', 1))
+        print(" - Добавлен тестовый пользователь: kris (пароль: 111111)")
+    except Exception as e:
+        print(f" ! Ошибка при добавлении пользователя: {e}")
 
     # Сохраняем изменения и закрываем соединение
     connection.commit()

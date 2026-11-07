@@ -601,6 +601,8 @@ class AIF:
             blob_article_img = convert_to_binary(
                 f"article_images/article{articleID}_img.jpg")  # Конвертация в формат blob
 
+            os.remove(f"article_images/article{articleID}_img.jpg")
+
             ''' Заголовок и подзаголовок статьи по ссылке url из списка ссылок urls '''
             title_check = soup.select_one('h1').text
             if title_check[-1] != "?":
@@ -716,7 +718,7 @@ class TASS:
                 out.close()
 
                 blob_article_img = convert_to_binary(f"article_images/article{articleID}_img.jpg")  # Конвертация в формат blob
-
+                os.remove(f"article_images/article{articleID}_img.jpg")
             except AttributeError:
                 image_container = ''
                 image_tag = ''
