@@ -1,9 +1,13 @@
 from PyQt5 import QtWidgets
 from gui import Window
-from database import INSERT
 
-#INSERT()
-
+try:
+    print("Запуск парсинга новостей... Это может занять время.")
+    from database import INSERT
+    #INSERT()
+    print("Парсинг завершен успешно.")
+except Exception as e:
+    print(f"Ошибка при парсинге: {e}")
 
 if __name__ == "__main__":
     import sys

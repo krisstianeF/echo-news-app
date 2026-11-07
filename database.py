@@ -317,7 +317,6 @@ class SELECT:
     def article_max_id(self) -> int:
         select = """SELECT articleID FROM article"""
         self.cursor.execute(select)
-
         id = self.cursor.fetchall()
         article_id_list = []
 
@@ -325,9 +324,13 @@ class SELECT:
             for x in row:
                     article_id_list.append(x)
 
-        self.maxID = max(article_id_list)
+        # ИСПРАВЛЕНИЕ: Если база пустая, возвращаем 0
+        if not article_id_list:
+            self.maxID = 0
+        else:
+            self.maxID = max(article_id_list)
+            
         self.sqlite_connection.commit()
-
         return self.maxID
 
 
