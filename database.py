@@ -2,15 +2,16 @@ import requests
 import sqlite3
 import shutil
 from bs4 import BeautifulSoup
-from blob import convert_to_binary
+from src.core.blob import convert_to_binary
 import os
 from datetime import datetime
-from style import Style
+from src.style import Style
+from src.config import DB_PATH
 
 class Database:
     """Взаимодействия интерфейса с базой данных"""
     def __init__(self):
-        self.db_connection = sqlite3.connect('echo_database.db')
+        self.db_connection = sqlite3.connect(DB_PATH)
 
     def get_one(self, request, id):
         cursor = self.db_connection.cursor()
@@ -32,7 +33,7 @@ class Database:
 
     def insert_into_publish(self, publishID, publish_name, image, link):
 
-        sqlite_connection = sqlite3.connect('echo_database.db')
+        sqlite_connection = sqlite3.connect(DB_PATH)
         cursor = sqlite_connection.cursor()
 
         insert = """INSERT INTO publish (publishID, publish_name, logo, link) VALUES (?, ?, ?, ?)"""
@@ -54,7 +55,7 @@ class Database:
 
     def insert_into_category(self, categoryID, category_name, image):
 
-        sqlite_connection = sqlite3.connect('echo_database.db')
+        sqlite_connection = sqlite3.connect(DB_PATH)
         cursor = sqlite_connection.cursor()
 
         insert = """INSERT INTO category (categoryID, category_name, icon) VALUES (?, ?, ?)"""
@@ -311,7 +312,7 @@ class Database:
 
 class SELECT:
     def __init__(self):
-        self.sqlite_connection = sqlite3.connect('echo_database.db')
+        self.sqlite_connection = sqlite3.connect(DB_PATH)
         self.cursor = self.sqlite_connection.cursor()
 
     def article_max_id(self) -> int:
@@ -376,7 +377,7 @@ class INSERT:
             self.insert_into_article(articles_data)
 
     def insert_into_article(self, data_list: list):
-            sqlite_connection = sqlite3.connect('echo_database.db')
+            sqlite_connection = sqlite3.connect(DB_PATH)
             cursor = sqlite_connection.cursor()
 
             insert = f"""INSERT INTO article VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""

@@ -1,12 +1,23 @@
 import sqlite3
 import os
-from blob import convert_to_binary  # Импортируем вашу функцию для работы с картинками
+from src.core.blob import convert_to_binary
+from src.config import DB_PATH, Assets
 
 def create_and_fill_database():
-    db_name = 'echo_database.db'
-    
-    # Подключаемся к БД (если файла нет, он создастся)
-    connection = sqlite3.connect(db_name)
+    # --- 1. УДАЛЕНИЕ СТАРОЙ БАЗЫ ---
+    if os.path.exists(DB_PATH):
+        try:
+            os.remove(DB_PATH)
+            print("Старая база данных удалена. Создаем новую...")
+        except PermissionError:
+            print("\n❌ ОШИБКА: Файл базы данных занят другим процессом!")
+            print("Закройте приложение (main.py) и SQLiteStudio, затем запустите скрипт снова.")
+            return
+    else:
+        print("Файл базы данных не найден. Создаем новый...")
+
+    # Подключаемся к БД
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
     print("Шаг 1: Создание таблиц...")
@@ -62,49 +73,57 @@ def create_and_fill_database():
     print("Шаг 2: Заполнение таблиц данными...")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ PUBLISH (Издательства) ---
+    # ВАЖНО: Пути к картинкам должны совпадать с реальностью. 
+    # Если картинки в assets/publish/, используйте пути с 'assets/'.
     publishes = [
-        (1, 'РИА Новости', 'publish/ria.jpg', 'https://ria.ru/'),
-        (2, 'Аргументы и факты', 'publish/aif.jpg', 'https://aif.ru/'),
-        (3, 'ТАСС', 'publish/tass.jpg', 'https://tass.ru/')
+        (1, 'РИА Новости', Assets.PUB_RIA, 'https://ria.ru/'),
+        (2, 'Аргументы и факты', Assets.PUB_AIF, 'https://aif.ru/'),
+        (3, 'ТАСС', Assets.PUB_TASS, 'https://tass.ru/')
     ]
     
     for p_id, p_name, p_logo_path, p_link in publishes:
         try:
-            logo_blob = convert_to_binary(p_logo_path) if os.path.exists(p_logo_path) else None
+            if os.path.exists(p_logo_path):
+                logo_blob = convert_to_binary(p_logo_path)
+            else:
+                logo_blob = None
             cursor.execute("INSERT OR IGNORE INTO publish VALUES (?, ?, ?, ?)", (p_id, p_name, logo_blob, p_link))
             print(f" - Добавлено издательство: {p_name}")
         except Exception as e:
             print(f" ! Ошибка при добавлении издательства {p_name}: {e}")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ CATEGORY (Категории) ---
+    # ВАЖНО: На скриншоте видно, что картинки категорий лежат в assets/categories/
+    # Но с расширением .jpg, а не .png!
     categories = [
-        (1, 'Популярное', 'categories/hot.jpg'),
-        (2, 'Свежее', 'categories/recent.jpg'),
-        (3, 'Политика', 'categories/hot.jpg'),
-        (4, 'Экономика', 'categories/coin.jpg'),
-        (5, 'Культура', 'categories/masks.jpg'),
-        (6, 'Спорт', 'categories/gamepad.jpg'),
-        (7, 'Наука', 'categories/science.jpg'),
-        (8, 'Здоровье', 'categories/health.jpg'),
-        (9, 'Игры', 'categories/gamepad.jpg')
+        (1, 'Популярное', Assets.CAT_HOT),
+        (2, 'Свежее', Assets.CAT_RECENT),
+        (3, 'Политика', Assets.CAT_POLITICS),   # Взял hot как заглушку
+        (4, 'Экономика', Assets.CAT_ECONOMY),
+        (5, 'Культура', Assets.CAT_CULTURE),
+        (6, 'Спорт', Assets.CAT_SPORT),      # Взял cup как заглушку
+        (7, 'Наука', Assets.CAT_SCIENCE),
+        (8, 'Здоровье', Assets.CAT_HEALTH),
+        (9, 'Игры', Assets.CAT_GAMES)
     ]
 
     for c_id, c_name, c_icon_path in categories:
         try:
-            icon_blob = convert_to_binary(c_icon_path) if os.path.exists(c_icon_path) else None
+            if os.path.exists(c_icon_path):
+                icon_blob = convert_to_binary(c_icon_path)
+            else:
+                icon_blob = None
             cursor.execute("INSERT OR IGNORE INTO category VALUES (?, ?, ?)", (c_id, c_name, icon_blob))
             print(f" - Добавлена категория: {c_name}")
         except Exception as e:
             print(f" ! Ошибка при добавлении категории {c_name}: {e}")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ AVATAR (Аватарки) ---
-    for i in range(1, 17):
-        avatar_path = f'gui/avatars/avatar_{i}.png'
+    for i, avatar_path in enumerate(Assets.AVATARS, start=1):
         cursor.execute("INSERT OR IGNORE INTO avatar VALUES (?, ?)", (i, avatar_path))
-    print(" - Добавлены аватарки (с 1 по 16)")
+    print(f" - Добавлены аватарки (с 1 по 16)")
 
     # --- ЗАПОЛНЕНИЕ ТАБЛИЦЫ USER (Тестовый пользователь) ---
-    # Добавляем пользователя kris с паролем 111111 и аватаркой 1
     try:
         cursor.execute("""INSERT OR IGNORE INTO user (userID, name, username, user_password, avatarID) 
                           VALUES (?, ?, ?, ?, ?)""", (1, 'kris', 'kris', '111111', 1))
@@ -116,7 +135,7 @@ def create_and_fill_database():
     connection.commit()
     connection.close()
     
-    print("\nБаза данных успешно создана и заполнена всеми базовыми данными!")
+    print("\nБаза данных успешно создана в папке 'data' и заполнена!")
 
 if __name__ == "__main__":
     create_and_fill_database()

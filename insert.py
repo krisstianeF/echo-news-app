@@ -1,9 +1,10 @@
 from database import INSERT
-from blob import convert_to_binary
+from src.core.blob import convert_to_binary
 import sqlite3
+from src.config import DB_PATH
 
 def insert_into_publish(publishID, publish_name, image, link):
-    sqlite_connection = sqlite3.connect('echo_database.db')
+    sqlite_connection = sqlite3.connect(DB_PATH)
     cursor = sqlite_connection.cursor()
 
     insert = """INSERT INTO publish (publishID, publish_name, logo, link) VALUES (?, ?, ?, ?)"""
@@ -25,7 +26,7 @@ def insert_into_publish(publishID, publish_name, image, link):
 
 
 def insert_into_category(categoryID, category_name, image):
-    sqlite_connection = sqlite3.connect('echo_database.db')
+    sqlite_connection = sqlite3.connect(DB_PATH)
     cursor = sqlite_connection.cursor()
 
     insert = """INSERT INTO category (categoryID, category_name, icon) VALUES (?, ?, ?)"""

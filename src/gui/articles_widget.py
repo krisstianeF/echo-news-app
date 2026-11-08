@@ -5,11 +5,13 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QScrollArea,
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, Qt
 import webbrowser
-import os
-from blob import blob_to_png, crop_image
-from style import Style
-from database import Database
 
+from src.core.blob import blob_to_png, crop_image
+from src.style import Style
+from src.config import Assets
+from src.core.database import Database
+from src.config import DB_PATH, ASSETS_DIR
+import os
 
 class ArticlesWidget(QWidget):
     favorite_button = None
@@ -134,21 +136,21 @@ class ArticlesWidget(QWidget):
         icon_size = 32
 
         ArticlesWidget.favorite_button = QPushButton()
-        ArticlesWidget.favorite_button.setIcon(QIcon("gui/icons/heart.png"))
+        ArticlesWidget.favorite_button.setIcon(QIcon(Assets.ICON_HEART))
         ArticlesWidget.favorite_button.setIconSize(QSize(icon_size, icon_size))
         ArticlesWidget.favorite_button.setFixedSize(icon_size, icon_size)
         ArticlesWidget.favorite_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        ArticlesWidget.favorite_button.setStyleSheet('''QPushButton:hover {
-        icon: url(gui/icons/heart2.png);
-        }''')
+        # Заменяем \ на / и оборачиваем в кавычки
+        hover_path_heart = Assets.ICON_HEART_HOVER.replace('\\', '/')
+        ArticlesWidget.favorite_button.setStyleSheet(f'QPushButton:hover {{ icon: url("{hover_path_heart}"); }}')
 
         ArticlesWidget.read_later_button = QPushButton()
-        ArticlesWidget.read_later_button.setIcon(QIcon("gui/icons/bookmark.png"))
+        ArticlesWidget.read_later_button.setIcon(QIcon(Assets.ICON_BOOKMARK))
         ArticlesWidget.read_later_button.setIconSize(QSize(icon_size, icon_size))
         ArticlesWidget.read_later_button.setFixedSize(icon_size, icon_size)
         ArticlesWidget.read_later_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        ArticlesWidget.read_later_button.setStyleSheet('''QPushButton:hover {
-        icon: url(gui/icons/bookmark2.png);}''')
+        hover_path_bookmark = Assets.ICON_BOOKMARK_HOVER.replace('\\', '/')
+        ArticlesWidget.read_later_button.setStyleSheet(f'QPushButton:hover {{ icon: url("{hover_path_bookmark}"); }}')
 
         if not cls.userFlag:
             ArticlesWidget.favorite_button.clicked.connect(cls.like_false)

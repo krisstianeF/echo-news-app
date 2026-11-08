@@ -5,9 +5,11 @@ from PyQt5.QtWidgets import *
 import datetime
 from datetime import datetime, timedelta
 import sqlite3
-from database import Database
+#from database import Database
+from src.core.database import Database
 from articles import ArticlesWidget
-from style import Style
+from src.style import Style
+from src.config import DB_PATH
 
 db = Database()
 
@@ -806,7 +808,7 @@ class LoginWidget(QWidget):
                 self.errorFlag = True
 
     def check_credentials(self, username, password):
-        conn = sqlite3.connect('echo_database.db')
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE username=? AND user_password=?", (username, password))
         user = cursor.fetchone()
@@ -1370,7 +1372,7 @@ class RegistrationWidget(QWidget):
 
     @classmethod
     def is_login_unique(cls, login):
-        conn = sqlite3.connect('echo_database.db')
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM user WHERE username = ?", (login,))
         count = cursor.fetchone()[0]
